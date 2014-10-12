@@ -1,42 +1,13 @@
-Note : the build status is for the `untested` branch; `master` is always passing. `untested` is the bleeding edge and is only merged into `master` when tests are passing.
-
-[![Build Status](https://travis-ci.org/SurveyMan/SurveyMan.png?branch=untested)](https://travis-ci.org/etosch/SurveyMan)
+[![Build Status](https://travis-ci.org/SurveyMan/Runner.png?branch=master)](https://travis-ci.org/etosch/Runner)
 # Usage
 
-SurveyMan is a programming language and runtime system for designing, debugging, and deploying surveys on the web. The SurveyMan runtime system is designed to be modular, so it can support a variety of backend services. For the latest information on backend support, see [the wiki](https://github.com/etosch/SurveyMan/wiki/Deploy). 
+SurveyMan is a programming language and runtime system for designing, debugging, and deploying surveys on the web. You
+can find the SurveyMan language, static analyzer, and simulator in the [SurveyMan repository](https://github.com/SurveyMan/SurveyMan).
 
-The SurveyMan programming language is a [tabular language](https://github.com/etosch/SurveyMan/wiki/Csv-Spec) that is best written in a spreadsheet program. There is also current developement on a Python library. For the latest updates to the Python library, follow @mmcmahon13. A tutorial on getting started with SurveyMan can be found [here](https://github.com/etosch/SurveyMan/wiki/Tutorial).
-
-The SurveyMan language itself supports a large range of survey structures. Some features that are not directly supported by the langauge can be implemented using customized code (especially Javascript). If you are not sure whether SurveyMan can support a particular feature, please contact @etosch.
+This repository contains the SurveyMan runtime system. It is designed to be modular, so it can support a variety of
+backend services.
 
 ### Installation / Usage
-
-There are two ways to install SurveyMan:
-
-1. Download the zipped archive of the latest stable release from our releases page. The archive will have a name like `surveyman-x.y.zip`. 
-    1. Unzip `surveyman-x.y.zip` to the location of your choice.
-    2. Execute `setup.py` as a script -- *despite its name, this is not an instance of the Python utility**. This will create a surveyman home folder (`~/surveyman`) and move most of the contents of the zipped folder to the surveyman home folder.
-2. Clone the `master` branch of the repository and run `make package`. This will produce the `surveyman-x.y.zip` archive. Proceed as in (1).
-
-There should only be two things remaining in the `surveyman-x.y.zip` folder -- (1) the surveyman jar and (2) a `data` folder. 
-
-To run an example survey, open a terminal in the `surveyman-x.y.zip` folder and run:
-
-`java -jar surveyman-x.y-standalone.jar`
-
-This will attempt to run the main program, `system.Runner` and will print out some usage information, since insufficient arguments have been provided.
-
-To try running a survey, such as the wage survey, you can execute 
-
-`java -jar surveyman-x.y-standalone.jar --backend=LOCALHOST data/samples/wage_survey.csv`
-
-In order to run surveys on Mechanical Turk, you will need to set up an Amazon Web Services Account and a Mechanical Turk Account. You can a more detailed discussion of how to get started in Mechanical Turk [here](https://github.com/etosch/SurveyMan/wiki/Getting-started-on-Mechanical-Turk).
-
-To run the analyses, such as those used to compute the metrics in the paper, execute 
-
-`java -cp surveyman-x.y-standalone.jar Report --report=static --results=data/results/wage_survey_results.csv data/samples/wage_survey.csv`
-
-You can also run `java -cp surveyman-x.y-standalone.jar -h` to see USAGE.
 
 ### Troubleshooting
 
