@@ -5,7 +5,9 @@
               (system Runner)
               (system.generators HTML)
               (system.localhost.generators LocalHTML)
-              (util Slurpie))
+              (util Slurpie)
+              [edu.umass.cs.runner Runner Record]
+              [edu.umass.cs.runner.system BoxedBool])
      (:use testLog)
      (:use clojure.test)
      (:use clj-webdriver.taxi)

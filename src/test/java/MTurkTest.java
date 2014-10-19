@@ -8,11 +8,10 @@ import org.junit.runners.JUnit4;
 import survey.Survey;
 import survey.exceptions.SurveyException;
 import interstitial.BackendType;
-import interstitial.Library;
-import interstitial.Record;
+import edu.umass.cs.runner.Record;
 import interstitial.AbstractResponseManager;
-import interstitial.ISurveyPoster;
-import interstitial.ITask;
+import edu.umass.cs.runner.system.ISurveyPoster;
+import edu.umass.cs.runner.system.ITask;
 import system.mturk.MturkLibrary;
 import system.mturk.MturkResponseManager;
 import system.mturk.MturkSurveyPoster;
@@ -20,7 +19,6 @@ import system.mturk.MturkSurveyPoster;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
-import java.util.List;
 
 @RunWith(JUnit4.class)
 public class MTurkTest extends TestLog {

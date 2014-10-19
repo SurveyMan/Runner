@@ -3,7 +3,9 @@
            (system.localhost LocalSurveyPoster)
            (java.util Properties)
            (java.io File)
-           (system Parameters))
+           (system Parameters)
+           [edu.umass.cs.runner Runner Record]
+           [edu.umass.cs.runner.system BoxedBool])
   (:import (survey Question Block$BranchParadigm Survey Block Component StringComponent)
              (interstitial IQuestionResponse OptTuple Record BackendType Library BoxedBool ISurveyResponse
                            AbstractResponseManager)

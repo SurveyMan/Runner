@@ -33,8 +33,6 @@ installJS:
 	mkdir -p $(jslib)/d3/lib/colorbrewer
 	wget -P $(jslib)/d3/lib/colorbrewer http://d3js.org/colorbrewer.v1.min.js
 
-
-
 compile : deps installJS
 	$(lein) javac
 	$(lein) compile
