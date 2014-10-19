@@ -1,6 +1,7 @@
 package edu.umass.cs.runner.system.localhost;
 
 import edu.umass.cs.runner.Library;
+import edu.umass.cs.runner.Runner;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -19,8 +20,8 @@ public class LocalLibrary extends Library {
                 super.props = new Properties();
                 super.props.load(new FileReader(propertiesURL));
             } catch (FileNotFoundException e) {
-                LOGGER.warn(e);
-                LOGGER.info(e.getLocalizedMessage()+"\nUsing default value instead...");
+                Runner.LOGGER.warn(e);
+                Runner.LOGGER.info(e.getLocalizedMessage()+"\nUsing default value instead...");
                 init();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -39,7 +40,7 @@ public class LocalLibrary extends Library {
             super.props = new Properties();
             super.props.load(new FileReader(Library.PARAMS));
         }catch(IOException io){
-            LOGGER.fatal(io);
+            Runner.LOGGER.fatal(io);
             System.err.println(io.getMessage());
             System.exit(1);
         }

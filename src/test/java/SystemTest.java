@@ -1,20 +1,20 @@
-import input.csv.CSVLexer;
-import input.csv.CSVParser;
-import input.exceptions.SyntaxException;
-import interstitial.BackendType;
+import edu.umass.cs.runner.BackendType;
 import edu.umass.cs.runner.Record;
 import edu.umass.cs.runner.ResponseWriter;
+import edu.umass.cs.runner.system.SurveyResponse;
+import edu.umass.cs.runner.system.generators.HTML;
+import edu.umass.cs.runner.system.mturk.MturkLibrary;
+import edu.umass.cs.runner.system.mturk.generators.MturkHTML;
+import edu.umass.cs.runner.system.mturk.generators.MturkXML;
+import edu.umass.cs.surveyman.input.csv.CSVLexer;
+import edu.umass.cs.surveyman.input.csv.CSVParser;
+import edu.umass.cs.surveyman.input.exceptions.SyntaxException;
+import edu.umass.cs.surveyman.qc.RandomRespondent;
+import edu.umass.cs.surveyman.survey.Survey;
+import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import qc.RandomRespondent;
-import survey.Survey;
-import survey.exceptions.SurveyException;
-import system.SurveyResponse;
-import system.generators.HTML;
-import system.mturk.MturkLibrary;
-import system.mturk.generators.MturkHTML;
-import system.mturk.generators.MturkXML;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -22,7 +22,7 @@ import java.io.StringReader;
 @RunWith(JUnit4.class)
 public class SystemTest extends TestLog {
 
-    public SystemTest() throws IOException, SyntaxException {
+    public SystemTest() throws Exception {
         super.init(this.getClass());
     }
 
@@ -63,7 +63,7 @@ public class SystemTest extends TestLog {
                 Survey survey = csvParser.parse();
                 RandomRespondent rr = new RandomRespondent(survey, RandomRespondent.AdversaryType.UNIFORM);
                 String headers = ResponseWriter.outputHeaders(survey);
-                String output = ResponseWriter.outputSurveyResponse(survey, rr.response);
+                String output = ResponseWriter.outputSurveyResponse(survey, rr.getResponse());
                 new SurveyResponse("").readSurveyResponses(survey, new StringReader(headers + output));
             } catch (SurveyException se) {
                 if (super.outcome[i])

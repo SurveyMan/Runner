@@ -1,20 +1,20 @@
 import com.amazonaws.mturk.service.exception.AccessKeyException;
-import input.csv.CSVLexer;
-import input.csv.CSVParser;
-import input.exceptions.SyntaxException;
+import edu.umass.cs.runner.AbstractResponseManager;
+import edu.umass.cs.runner.BackendType;
+import edu.umass.cs.runner.system.mturk.MturkLibrary;
+import edu.umass.cs.runner.system.mturk.MturkResponseManager;
+import edu.umass.cs.runner.system.mturk.MturkSurveyPoster;
+import edu.umass.cs.surveyman.input.csv.CSVLexer;
+import edu.umass.cs.surveyman.input.csv.CSVParser;
+import edu.umass.cs.surveyman.input.exceptions.SyntaxException;
+import edu.umass.cs.surveyman.survey.Survey;
+import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import survey.Survey;
-import survey.exceptions.SurveyException;
-import interstitial.BackendType;
 import edu.umass.cs.runner.Record;
-import interstitial.AbstractResponseManager;
 import edu.umass.cs.runner.system.ISurveyPoster;
 import edu.umass.cs.runner.system.ITask;
-import system.mturk.MturkLibrary;
-import system.mturk.MturkResponseManager;
-import system.mturk.MturkSurveyPoster;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -31,7 +31,7 @@ public class MTurkTest extends TestLog {
         }
     }
 
-    public MTurkTest() throws IOException, SyntaxException {
+    public MTurkTest() throws Exception {
         super.init(this.getClass());
     }
 

@@ -65,7 +65,7 @@ public class MturkLibrary extends Library {
             io.printStackTrace();
         }
 
-        LOGGER.info(props.toString());
+        Runner.LOGGER.info(props.toString());
 
         boolean sandbox = ! this.props.containsKey(Parameters.SANDBOX) ||
                 Boolean.parseBoolean(this.props.getProperty(Parameters.SANDBOX));
@@ -83,7 +83,7 @@ public class MturkLibrary extends Library {
         if (! cfile.exists() ) {
             if (alt.exists())
                 alt.renameTo(cfile);
-            else LOGGER.warn("ERROR: You have not yet set up the surveyman directory nor AWS keys. Please see the project website for instructions.");
+            else Runner.LOGGER.warn("ERROR: You have not yet set up the surveyman directory nor AWS keys. Please see the project website for instructions.");
         } else {
             try {
                 // make sure we have both names for the access keys in the config file
@@ -115,7 +115,7 @@ public class MturkLibrary extends Library {
                     bw.close();
                 }
             } catch (IOException io){
-                LOGGER.trace(io);
+                Runner.LOGGER.trace(io);
             }
         }
     }
