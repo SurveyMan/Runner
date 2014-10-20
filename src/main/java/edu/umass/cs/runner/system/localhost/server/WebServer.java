@@ -1,5 +1,7 @@
 package edu.umass.cs.runner.system.localhost.server;
 
+import edu.umass.cs.runner.Runner;
+import edu.umass.cs.runner.system.localhost.LocalResponseManager;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -52,15 +54,27 @@ public class WebServer {
     }
 
     public static WebServer start(int port, WebHandler handler) throws WebServerException {
-        Server server = new Server(port);
-        server.setHandler(new JettyHandler(handler));
-        try {
-            server.start();
-        } catch (BindException exception) {
-            start(port+1, handler);
-        } catch (Exception ex) {
-            throw new WebServerException(ex);
-        }
+        int retries = 5;
+        int currentPort = port;
+        Server server;
+        BindException e;
+
+        do {
+            server = new Server(currentPort);
+            server.setHandler(new JettyHandler(handler));
+            try {
+                server.start();
+                e = null;
+            } catch (BindException exception) {
+                LocalResponseManager.chill(5);
+                retries--;
+                currentPort++;
+                e = exception;
+                Runner.LOGGER.warn(e.getMessage());
+            } catch (Exception ex) {
+                throw new WebServerException(ex);
+            }
+        } while (retries > 0 && e != null);
 
         return new WebServer(server);
     }

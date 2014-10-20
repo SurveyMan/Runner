@@ -43,12 +43,14 @@ public class Server {
         server = WebServer.start(frontPort, new WebHandler() {
             @Override
             public void handle(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
+
                 requests++;
+                httpResponse.addHeader("Access-Control-Allow-Origin:", "http://surveyman.github.io");
 
                 String method = httpRequest.getMethod();
                 String httpPath = httpRequest.getPathInfo();
 
-                Runner.LOGGER.info("HTTP Request: "+method+" "+httpPath);
+                //Runner.LOGGER.info("HTTP Request: "+method+" "+httpPath);
 
                 String response = "";
                 if("GET".equals(method)) {

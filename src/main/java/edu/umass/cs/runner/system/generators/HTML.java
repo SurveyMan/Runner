@@ -22,6 +22,15 @@ import java.net.MalformedURLException;
 
 public class HTML {
 
+    public static final String COMMON_STRINGS =
+            "<script type=\"text/javascript\" src=\"//cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.js\" ></script>"
+            + "<script type=\"text/javascript\" src=\"https://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js\"></script>\n"
+            + "<script type=\"text/javascript\" src=\"https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.3.4/seedrandom.min.js\"></script>\n"
+            + "<script type=\"text/javascript\" src=\"https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js\"></script>\n"
+            + "<script type=\"text/javascript\" src=\"https://surveyman.github.io/surveyman.js/survey.js\"></script>\n"
+            + "<script type=\"text/javascript\" src=\"https://surveyman.github.io/surveyman.js/display.js\"></script>\n"
+            + "<script type=\"text/javascript\" src=\"https://surveyman.github.io/surveyman.js/interpreter.js\"></script>\n";
+
     private static String stringify() throws SurveyException, MalformedURLException {
         return "<div name=\"question\" hidden>"
                     + "<p class=\"question\"></p>"

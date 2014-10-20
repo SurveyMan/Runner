@@ -17,28 +17,20 @@ public class JS {
     
     private static final Logger LOGGER = Logger.getLogger("system.mturk");
 
-    private static String makeLoadPreview(Component preview) {
-        return String.format(" var loadPreview = function () { $('#preview').load('%s'); }; "
-                , ((HTMLComponent) preview).data);
-    }
-
-    private static String makeJS(Survey survey, Component preview) throws SurveyException, IOException, ProcessingException {
-        String json = "var jsonizedSurvey = " + survey.jsonize() + ";";
+    private static String makeJS(Component preview) throws SurveyException, IOException, ProcessingException {
         String loadPreview;
         if (preview instanceof HTMLComponent)
-            loadPreview = makeLoadPreview(preview);
+            loadPreview = String.format(" var loadPreview = function () { $('#preview').load('%s'); }; "
+                    , ((HTMLComponent) preview).data);
         else loadPreview = " var loadPreview = function () {}; ";
-        return String.format("%s\n%s"
-                , loadPreview
-                , json
-        );
+        return loadPreview;
     }
 
     public static String getJSString(Survey survey, Component preview) throws SurveyException, IOException {
         String js = "";
         try {
-            String temp = String.format("var customInit = function() { %s };", Slurpie.slurp(Library.JSSKELETON, true)) ;
-            js = makeJS(survey, preview) + temp;
+            js = makeJS(preview) + String.format("SurveyMan.display.ready(%s, function() { %s });",
+                    survey.jsonize(), Slurpie.slurp(Library.JSSKELETON, true));
         } catch (FileNotFoundException ex) {
             LOGGER.fatal(ex);
             ex.printStackTrace();
@@ -52,7 +44,7 @@ public class JS {
             e.printStackTrace();
             System.exit(-1);
         }
-        //return new ClosureJavaScriptCompressor().compress(js);
         return js;
+        //return new ClosureJavaScriptCompressor().compress(js);
     };
 }

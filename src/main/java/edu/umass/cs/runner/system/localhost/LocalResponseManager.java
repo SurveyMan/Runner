@@ -88,18 +88,6 @@ public class LocalResponseManager extends AbstractResponseManager {
     public int addResponses(Survey survey, ITask task) throws SurveyException {
         int botResponsesToAdd = 0, validResponsesToAdd = 0;
         Record r = null;
-        QCMetrics qcMetric = null;
-
-        try {
-            qcMetric = (QCMetrics) Class.forName("qc.Metrics").newInstance();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
         try {
             r = AbstractResponseManager.getRecord(survey);
         } catch (IOException e) {
@@ -111,7 +99,7 @@ public class LocalResponseManager extends AbstractResponseManager {
             for (Server.IdResponseTuple tupe : tuples) {
                 SurveyResponse sr = parseResponse(tupe.id, tupe.xml, survey, r, null);
                 assert sr!=null;
-                if (qcMetric.entropyClassification(survey, sr, r.validResponses, false, 0.05)){
+                if (QCMetrics.entropyClassification(survey, sr, r.validResponses, false, 0.05)){
                     r.botResponses.add(sr);
                     botResponsesToAdd++;
                 } else {

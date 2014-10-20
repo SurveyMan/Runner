@@ -27,7 +27,6 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.dom4j.DocumentException;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -318,6 +317,7 @@ public class Runner {
             for (ITask task : record.getAllTasks())
                 msg.append("\n\t" + surveyPoster.makeTaskURL(responseManager, task));
             LOGGER.info(msg.toString());
+            System.out.println(msg.toString());
             runner.join();
             responder.join();
             writer.join();
