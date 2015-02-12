@@ -326,9 +326,18 @@ public class Runner {
         }
     }
 
-    public static void main(String[] args)
-            throws IOException, InterruptedException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, ParseException, WebServerException, InstantiationException, ClassNotFoundException {
-        // LOGGING
+    public static void main(
+            String[] args)
+            throws IOException,
+            InterruptedException,
+            NoSuchMethodException,
+            IllegalAccessException,
+            InvocationTargetException,
+            ParseException,
+            WebServerException,
+            InstantiationException,
+            ClassNotFoundException
+    {
 
         ArgumentParser argumentParser = makeArgParser();
         Namespace ns;
