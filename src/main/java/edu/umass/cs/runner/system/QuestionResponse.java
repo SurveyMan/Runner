@@ -20,37 +20,29 @@ public class QuestionResponse implements IQuestionResponse {
     private List<OptTuple> opts = new ArrayList<OptTuple>();
     private int indexSeen;
 
-    @Override
-    public boolean equals(Object that){
-        if (that instanceof QuestionResponse) {
-            return this.q.equals(((QuestionResponse) that).q)
-                    && this.opts.equals(((QuestionResponse) that).opts);
-        } else return false;
-    }
-
-    @Override
-    public String toString(){
-        StringBuilder s = new StringBuilder();
-        for (OptTuple o : opts){
-            s.append(o.c.toString());
-        }
-        return String.format(" (%s) %s : [ %s ]", q.quid, q.toString(), s.toString());
-    }
-
-    public QuestionResponse(){
+    public QuestionResponse()
+    {
 
     }
 
-    public QuestionResponse(Survey s, String quid, int qpos) throws SurveyException {
+    public QuestionResponse(
+            Survey s,
+            String quid,
+            int qpos)
+            throws SurveyException
+    {
         this.q = s.getQuestionById(quid);
         this.indexSeen = qpos;
     }
 
-    public QuestionResponse(Question q) {
+    public QuestionResponse(
+            Question q)
+    {
         this.q = q;
     }
 
-    public String quid() {
+    public String quid()
+    {
         return q.quid;
     }
 
@@ -60,17 +52,26 @@ public class QuestionResponse implements IQuestionResponse {
      */
     public Map<String, String> otherValues;
 
-    public void add(String quid, OptTuple tupe, Map<String, String> otherValues) {
+    public void add(
+            String quid,
+            OptTuple tupe,
+            Map<String, String> otherValues)
+    {
         this.otherValues = otherValues;
         if (this.q == null) {
-            this.q = new Question(-1,-1);
+            this.q = new Question("", -1, -1);
             this.q.quid = quid;
         }
         this.opts.add(tupe);
         this.indexSeen = -1;
     }
 
-    public void add(JsonObject response, Survey s, Map<String,String> otherValues) throws SurveyException {
+    public void add(
+            JsonObject response,
+            Survey s,
+            Map<String,String> otherValues)
+            throws SurveyException
+    {
 
         boolean custom = Question.customQuestion(response.get("quid").getAsString());
 
@@ -80,8 +81,7 @@ public class QuestionResponse implements IQuestionResponse {
             assert(this.otherValues.equals(otherValues));
 
         if (custom){
-            this.q = new Question(-1,-1);
-            this.q.data = new StringComponent("CUSTOM", -1, -1);
+            this.q = new Question(new StringComponent("CUSTOM", -1, -1), -1, -1);
             this.indexSeen = response.get("qpos").getAsInt();
             this.opts.add(new OptTuple(new StringComponent(response.get("oid").getAsString(), -1, -1), -1));
         } else {
@@ -98,7 +98,8 @@ public class QuestionResponse implements IQuestionResponse {
     }
 
     @Override
-    public Question getQuestion() {
+    public Question getQuestion()
+    {
         return q;
     }
 
@@ -111,4 +112,25 @@ public class QuestionResponse implements IQuestionResponse {
     public int getIndexSeen() {
         return indexSeen;
     }
+
+    @Override
+    public boolean equals(
+            Object that)
+    {
+        if (that instanceof QuestionResponse) {
+            return this.q.equals(((QuestionResponse) that).q)
+                    && this.opts.equals(((QuestionResponse) that).opts);
+        } else return false;
+    }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder s = new StringBuilder();
+        for (OptTuple o : opts){
+            s.append(o.c.toString());
+        }
+        return String.format(" (%s) %s : [ %s ]", q.quid, q.toString(), s.toString());
+    }
+
 }

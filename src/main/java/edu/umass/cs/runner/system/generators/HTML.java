@@ -31,14 +31,20 @@ public class HTML {
             + "<script type=\"text/javascript\" src=\"https://surveyman.github.io/surveyman.js/display.js\"></script>\n"
             + "<script type=\"text/javascript\" src=\"https://surveyman.github.io/surveyman.js/interpreter.js\"></script>\n";
 
-    private static String stringify() throws SurveyException, MalformedURLException {
+    private static String stringify()
+            throws SurveyException,
+            MalformedURLException
+    {
         return "<div name=\"question\" hidden>"
                     + "<p class=\"question\"></p>"
                     + "<p class=\"answer\"></p>"
                     + "</div>";
     }
 
-    private static String stringifyPreview(Component c) throws SurveyException {
+    private static String stringifyPreview(
+            Component c)
+            throws SurveyException
+    {
         String baseString = Component.html(c);
         return String.format("<div id=\"preview\" %s>%s</div>"
                 , ((c instanceof HTMLComponent) ? "onload=\"loadPreview();\""
@@ -46,8 +52,14 @@ public class HTML {
                 , ((c instanceof StringComponent) ? CSVLexer.htmlChars2XML(baseString) : ""));
     }
 
-    public static void spitHTMLToFile(String html, Survey survey)
-            throws IOException, SurveyException, InstantiationException, IllegalAccessException {
+    public static void spitHTMLToFile(
+            String html,
+            Survey survey)
+            throws IOException,
+            SurveyException,
+            InstantiationException,
+            IllegalAccessException
+    {
         String htmlFileName = Record.getHtmlFileName(survey);
         Runner.LOGGER.info(String.format("Source html found at %s", htmlFileName));
         BufferedWriter bw = new BufferedWriter(new FileWriter(htmlFileName));
@@ -55,14 +67,20 @@ public class HTML {
         bw.close();
     }
 
-    public static String cleanedPreview(Record record) {
+    public static String cleanedPreview(
+            Record record)
+    {
         String preview = record.library.props.getProperty("splashpage", "");
         Document doc = Jsoup.parse(preview);
         Element body = doc.body();
         return body.html();
     }
 
-    public static String getHTMLString(Record record, IHTML backendHTML) throws SurveyException {
+    public static String getHTMLString(
+            Record record,
+            IHTML backendHTML)
+            throws SurveyException
+    {
         String html = "";
         try {
             assert(record!=null);

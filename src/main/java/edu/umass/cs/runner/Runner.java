@@ -15,7 +15,7 @@ import edu.umass.cs.runner.system.mturk.MturkLibrary;
 import edu.umass.cs.runner.system.mturk.MturkResponseManager;
 import edu.umass.cs.runner.system.mturk.MturkSurveyPoster;
 import edu.umass.cs.runner.utils.ArgReader;
-import edu.umass.cs.surveyman.analyses.ISurveyResponse;
+import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
 import edu.umass.cs.surveyman.survey.Survey;
@@ -44,7 +44,8 @@ public class Runner {
     public static final BoxedBool interrupt = new BoxedBool();
     public static final double getBasePay = 7.25;
 
-    public static ArgumentParser makeArgParser(){
+    public static ArgumentParser makeArgParser()
+    {
         // move more of the setup into this method
         ArgumentParser argumentParser = ArgumentParsers.newArgumentParser(Runner.class.getName(),true,"-").description("Posts surveys");
         argumentParser.addArgument("survey").required(true);
@@ -71,7 +72,12 @@ public class Runner {
         return argumentParser;
     }
 
-    public static void init(String bt, String properties, String config) throws IOException {
+    public static void init(
+            String bt,
+            String properties,
+            String config)
+            throws IOException
+    {
         // if it's an unrecognized backend type, it will fail earlier
         backendType = BackendType.valueOf(bt);
         switch (backendType) {
@@ -89,16 +95,25 @@ public class Runner {
         }
     }
 
-    public static void init(String bt) throws IOException{
+    public static void init(
+            String bt)
+            throws IOException
+    {
         init(bt, "","");
     }
 
-    public static void init(BackendType bt) throws IOException{
+    public static void init(
+            BackendType bt)
+            throws IOException
+    {
         init(bt.name());
     }
 
-    public static int recordAllTasksForSurvey(Survey survey)
-            throws IOException, SurveyException {
+    public static int recordAllTasksForSurvey(
+            Survey survey)
+            throws IOException,
+            SurveyException
+    {
 
         Record record = AbstractResponseManager.getRecord(survey);
         String hiturl = "", msg;
@@ -123,7 +138,9 @@ public class Runner {
         return responsesAdded;
     }
 
-    public static Thread makeResponseGetter(final Survey survey){
+    public static Thread makeResponseGetter(
+            final Survey survey)
+    {
         // grab responses for each incomplete survey in the responsemanager
         final BackendType backendType = Runner.backendType;
         return new Thread(){
@@ -167,16 +184,26 @@ public class Runner {
         };
     }
 
-    public static boolean stillLive(Survey survey) throws IOException, SurveyException, ClassNotFoundException, IllegalAccessException, InstantiationException {
+    public static boolean stillLive(
+            Survey survey)
+            throws IOException,
+            SurveyException,
+            ClassNotFoundException,
+            IllegalAccessException,
+            InstantiationException
+    {
         Record record = AbstractResponseManager.getRecord(survey);
         if (record==null) return false;
         boolean done = record.validResponses.size() >= Integer.parseInt(record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
         return ! done;
     }
 
-    public static void writeResponses(Survey survey, Record record){
-        List<ISurveyResponse> responseList = new ArrayList<ISurveyResponse>(record.validResponses);
-        for (ISurveyResponse sr : responseList) {
+    public static void writeResponses(
+            Survey survey,
+            Record record)
+    {
+        List<AbstractSurveyResponse> responseList = new ArrayList<AbstractSurveyResponse>(record.validResponses);
+        for (AbstractSurveyResponse sr : responseList) {
             if (!sr.isRecorded()) {
                 BufferedWriter bw = null;
                 LOGGER.info("Writing " + sr.getSrid() + "...");
@@ -204,7 +231,9 @@ public class Runner {
         }
     }
 
-    public static Thread makeWriter(final Survey survey){
+    public static Thread makeWriter(
+            final Survey survey)
+    {
         //writes hits that correspond to current jobs in memory to their files
         return new Thread(){
             @Override
@@ -231,10 +260,16 @@ public class Runner {
         };
     }
 
-    public static void run(final Record record) throws InterruptedException,
-            ClassNotFoundException, InstantiationException, IllegalAccessException, IOException, AccessKeyException {
+    public static void run(
+            final Record record)
+            throws InterruptedException,
+            ClassNotFoundException,
+            InstantiationException,
+            IllegalAccessException,
+            IOException,
+            AccessKeyException
+    {
         try {
-
             Survey survey = record.survey;
             do {
                 if (!interrupt.getInterrupt()) {
@@ -262,7 +297,9 @@ public class Runner {
         }
     }
 
-    public static Thread makeRunner(final Record record) {
+    public static Thread makeRunner(
+            final Record record)
+    {
         return new Thread(){
             @Override
             public void run() {
@@ -297,7 +334,15 @@ public class Runner {
         };
     }
 
-    public static void runAll(String s, String sep) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, IOException, InterruptedException {
+    public static void runAll(
+            String s,
+            String sep)
+            throws InvocationTargetException,
+            IllegalAccessException,
+            NoSuchMethodException,
+            IOException,
+            InterruptedException
+    {
         try {
             CSVParser csvParser = new CSVParser(new CSVLexer(s, sep));
             Survey survey = csvParser.parse();

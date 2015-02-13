@@ -5,8 +5,9 @@ import java.util.*;
 
 import com.google.gson.JsonParser;
 import edu.umass.cs.runner.Record;
+import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
-import edu.umass.cs.surveyman.analyses.ISurveyResponse;
+import edu.umass.cs.surveyman.analyses.ISurveyResponseReader;
 import edu.umass.cs.surveyman.analyses.OptTuple;
 import edu.umass.cs.surveyman.survey.Component;
 import edu.umass.cs.surveyman.survey.Question;
@@ -32,7 +33,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 
-public class SurveyResponse implements ISurveyResponse {
+public class SurveyResponse extends AbstractSurveyResponse implements ISurveyResponseReader {
 
     public static final Logger LOGGER = Logger.getLogger("survey");
     public static final Gensym gensym = new Gensym("sr");
@@ -103,7 +104,7 @@ public class SurveyResponse implements ISurveyResponse {
 
 
     @Override
-    public List<IQuestionResponse> getResponses() {
+    public List<IQuestionResponse> getAllResponses() {
         return responses;
     }
 
@@ -133,7 +134,7 @@ public class SurveyResponse implements ISurveyResponse {
     }
 
     @Override
-    public String workerId() {
+    public String getWorkerId() {
         return workerId;
     }
 
@@ -148,9 +149,9 @@ public class SurveyResponse implements ISurveyResponse {
     }
 
 
-    public List<ISurveyResponse> readSurveyResponses(Survey s, String filename) throws SurveyException {
+    public List<AbstractSurveyResponse> readSurveyResponses(Survey s, String filename) throws SurveyException {
 
-        List<ISurveyResponse> responses = null;
+        List<AbstractSurveyResponse> responses = null;
 
         if (new File(filename).isFile()) {
 
@@ -161,7 +162,7 @@ public class SurveyResponse implements ISurveyResponse {
             }
         } else if (new File(filename).isDirectory()) {
 
-            responses = new ArrayList<ISurveyResponse>();
+            responses = new ArrayList<AbstractSurveyResponse>();
 
             for (File f : new File(filename).listFiles()) {
                 try {
@@ -177,9 +178,13 @@ public class SurveyResponse implements ISurveyResponse {
     }
 
     @Override
-    public List<ISurveyResponse> readSurveyResponses(Survey s, Reader r) throws SurveyException {
+    public List<AbstractSurveyResponse> readSurveyResponses(
+            Survey s,
+            Reader r)
+            throws SurveyException
+    {
 
-        List<ISurveyResponse> responses = new LinkedList<ISurveyResponse>();
+        List<AbstractSurveyResponse> responses = new LinkedList<AbstractSurveyResponse>();
 
         final CellProcessor[] cellProcessors = s.makeProcessorsForResponse();
 
@@ -187,7 +192,7 @@ public class SurveyResponse implements ISurveyResponse {
             ICsvMapReader reader = new CsvMapReader(r, CsvPreference.STANDARD_PREFERENCE);
             final String[] header = reader.getHeader(true);
             Map<String, Object> headerMap;
-            ISurveyResponse sr = null;
+            AbstractSurveyResponse sr = null;
             while ((headerMap = reader.read(header, cellProcessors)) != null) {
                 // loop through one survey response (i.e. per responseid) at a time
                 if ( sr == null || !sr.getSrid().equals(headerMap.get("responseid"))){
@@ -200,7 +205,7 @@ public class SurveyResponse implements ISurveyResponse {
                 }
                 // fill out the individual question responses
                 IQuestionResponse questionResponse = new QuestionResponse(s, (String) headerMap.get("questionid"), (Integer) headerMap.get("questionpos"));
-                for (IQuestionResponse qr : sr.getResponses())
+                for (IQuestionResponse qr : sr.getAllResponses())
                     if (qr.getQuestion().quid.equals((String) headerMap.get("questionid"))) {
                         // if we already have a QuestionResponse object matching this id, set it
                         questionResponse = qr;
@@ -212,7 +217,7 @@ public class SurveyResponse implements ISurveyResponse {
                 else c = new StringComponent((String) headerMap.get("optionid"), -1, -1);
                 Integer i = (Integer) headerMap.get("optionpos");
                 questionResponse.getOpts().add(new OptTuple(c,i));
-                sr.getResponses().add(questionResponse);
+                sr.getAllResponses().add(questionResponse);
             }
             reader.close();
             return responses;

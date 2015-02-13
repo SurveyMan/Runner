@@ -2,7 +2,7 @@ package edu.umass.cs.runner.system.localhost;
 
 import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.system.SurveyResponse;
-import edu.umass.cs.surveyman.analyses.ISurveyResponse;
+import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.qc.QCMetrics;
 import edu.umass.cs.surveyman.survey.Survey;
@@ -24,8 +24,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import edu.umass.cs.runner.AbstractResponseManager;
-import edu.umass.cs.surveyman.utils.Gensym;
-import org.json.JSONException;
 import org.xml.sax.SAXException;
 import edu.umass.cs.runner.Record;
 import edu.umass.cs.runner.system.ITask;
@@ -37,11 +35,17 @@ import java.util.*;
 
 public class LocalResponseManager extends AbstractResponseManager {
 
-    public LocalResponseManager(){
+    public LocalResponseManager()
+    {
         
     }
 
-    public List<Server.IdResponseTuple> getNewAnswers() throws IOException, URISyntaxException, ParseException, JSONException {
+    public List<Server.IdResponseTuple> getNewAnswers()
+            throws IOException,
+            URISyntaxException,
+            ParseException,
+            JSONException
+    {
         String responseBody = getRequest();
         ArrayList<Server.IdResponseTuple> responseTuples = new ArrayList<Server.IdResponseTuple>();
         if (responseBody==null || responseBody.trim().equals("") || responseBody.startsWith("<"))
@@ -58,7 +62,8 @@ public class LocalResponseManager extends AbstractResponseManager {
         return responseTuples;
     }
 
-    private String getRequest() {
+    private String getRequest()
+    {
 
         if (!Server.serving) return "";
 
@@ -85,7 +90,11 @@ public class LocalResponseManager extends AbstractResponseManager {
     }
 
     @Override
-    public int addResponses(Survey survey, ITask task) throws SurveyException {
+    public int addResponses(
+            Survey survey,
+            ITask task)
+            throws SurveyException
+    {
         int botResponsesToAdd = 0, validResponsesToAdd = 0;
         Record r = null;
         try {
@@ -123,27 +132,41 @@ public class LocalResponseManager extends AbstractResponseManager {
     }
 
     @Override
-    public ITask getTask(String taskid) {
+    public ITask getTask(
+            String taskid)
+    {
         return null;
     }
 
     @Override
-    public boolean makeTaskUnavailable(ITask task) {
+    public boolean makeTaskUnavailable(
+            ITask task)
+    {
         return false;
     }
 
     @Override
-    public boolean makeTaskAvailable(String taskId, Record r) {
+    public boolean makeTaskAvailable(
+            String taskId,
+            Record r)
+    {
         return false;
     }
 
     @Override
-    public void awardBonus(double amount, ISurveyResponse sr, Survey survey) {
+    public void awardBonus(
+            double amount,
+            AbstractSurveyResponse sr,
+            Survey survey)
+    {
 
     }
 
     @Override
-    public ITask makeTaskForId(Record record, String taskid) {
+    public ITask makeTaskForId(
+            Record record,
+            String taskid)
+    {
         try {
             return new LocalTask(record, taskid);
         } catch (IOException e) {
@@ -155,7 +178,14 @@ public class LocalResponseManager extends AbstractResponseManager {
     }
 
     @Override
-    public SurveyResponse parseResponse(String workerId, String ansXML, Survey survey, Record r, Map<String, String> otherValues) throws SurveyException {
+    public SurveyResponse parseResponse(
+            String workerId,
+            String ansXML,
+            Survey survey,
+            Record r,
+            Map<String, String> otherValues)
+            throws SurveyException
+    {
         try {
             assert workerId!=null;
             assert ansXML!=null;

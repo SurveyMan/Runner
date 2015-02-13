@@ -14,7 +14,7 @@ import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.system.ITask;
 import edu.umass.cs.runner.system.Parameters;
 import edu.umass.cs.runner.system.SurveyResponse;
-import edu.umass.cs.surveyman.analyses.ISurveyResponse;
+import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.qc.QCMetrics;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
@@ -44,20 +44,27 @@ public class MturkResponseManager extends AbstractResponseManager {
     final protected static long maxExpirationIncrementInSeconds = 31536000l;
     final protected static int maxWaitTimeInSeconds = 120;
 
-    public MturkResponseManager(MturkLibrary lib){
+    public MturkResponseManager(
+            MturkLibrary lib)
+    {
         this.config = new PropertiesClientConfig(lib.CONFIG);
         this.config.setServiceURL(lib.MTURK_URL);
         this.service = new RequesterService(config);
     }
 
-    private static boolean overTime(String name, int waittime){
+    private static boolean overTime(
+            String name,
+            int waittime)
+    {
         if (waittime > MturkResponseManager.maxwaittime){
           LOGGER.warn(String.format("Wait time in %s has exceeded max wait time. Cancelling request.", name));
           return true;
         } else return false;
     }
 
-    public ITask getTask(String taskId){
+    public ITask getTask(
+            String taskId)
+    {
         String name = "getTask";
         int waittime = 1;
         while (true) {
@@ -81,7 +88,9 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
-    private List<Assignment> getAllAssignmentsForHIT(HIT hit) {
+    private List<Assignment> getAllAssignmentsForHIT(
+            HIT hit)
+    {
         String name = "getAllAssignmentsForHIT";
         int waittime = 1;
         while (true) {
@@ -103,7 +112,10 @@ public class MturkResponseManager extends AbstractResponseManager {
     }
 
     @Override
-    public boolean makeTaskAvailable(String taskId, Record record) {
+    public boolean makeTaskAvailable(
+            String taskId,
+            Record record)
+    {
         String name = "makeTaskAvailable";
         int waitTime = 1;
         while (true){
@@ -125,7 +137,11 @@ public class MturkResponseManager extends AbstractResponseManager {
     }
 
     @Override
-    public void awardBonus(double amount, ISurveyResponse sr, Survey survey) {
+    public void awardBonus(
+            double amount,
+            AbstractSurveyResponse sr,
+            Survey survey)
+    {
         String name = "awardBonus";
         int waitTime = 1;
         while (true){
@@ -141,10 +157,10 @@ public class MturkResponseManager extends AbstractResponseManager {
                     Runner.LOGGER.info("all assignments for this record:" + assignments.length);
                     String assignmentId = "";
                     for (Assignment a : assignments) {
-                        if (a.getWorkerId().equals(sr.workerId())) {
-                            service.grantBonus(sr.workerId(), amount, assignmentId, "For partial work completed.");
+                        if (a.getWorkerId().equals(sr.getWorkerId())) {
+                            service.grantBonus(sr.getWorkerId(), amount, assignmentId, "For partial work completed.");
                             Runner.LOGGER.info(String.format("Granted worker %s bonus %f for assignment %s in survey %s"
-                                    , sr.workerId(), amount, assignmentId, survey.sourceName));
+                                    , sr.getWorkerId(), amount, assignmentId, survey.sourceName));
                         }
                     }
                 }
@@ -165,14 +181,23 @@ public class MturkResponseManager extends AbstractResponseManager {
     }
 
     @Override
-    public ITask makeTaskForId(Record record, String taskid) {
+    public ITask makeTaskForId(
+            Record record,
+            String taskid)
+    {
         HIT task = service.getHIT(taskid);
         return new MturkTask(task, record);
     }
 
     @Override
-    public SurveyResponse parseResponse(String workerId, String ansXML, Survey survey, Record r,
-                                        Map<String, String> otherValues) throws SurveyException {
+    public SurveyResponse parseResponse(
+            String workerId,
+            String ansXML,
+            Survey survey,
+            Record r,
+            Map<String, String> otherValues)
+            throws SurveyException
+    {
         try {
             if (otherValues==null)
                 return new SurveyResponse(survey, workerId, ansXML, r, new HashMap<String, String>());
@@ -190,7 +215,9 @@ public class MturkResponseManager extends AbstractResponseManager {
     }
 
     @Override
-    public boolean makeTaskUnavailable(ITask task) {
+    public boolean makeTaskUnavailable(
+            ITask task)
+    {
         String name = "expireHIT";
         while (true){
             synchronized (service) {
@@ -208,7 +235,8 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
-    protected String getWebsiteURL() {
+    protected String getWebsiteURL()
+    {
         String name = "getWebsiteURL";
         synchronized (service) {
             while(true) {
@@ -222,9 +250,20 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
-    protected String createHIT(String title, String description, String keywords, String xml, double reward
-            , long assignmentDuration, long maxAutoApproveDelay, long lifetime, int assignments, String hitTypeId)
-            throws ParseException, SurveyException {
+    protected String createHIT(
+            String title,
+            String description,
+            String keywords,
+            String xml,
+            double reward,
+            long assignmentDuration,
+            long maxAutoApproveDelay,
+            long lifetime,
+            int assignments,
+            String hitTypeId)
+            throws ParseException,
+            SurveyException
+    {
         Runner.LOGGER.info(getWebsiteURL());
         System.out.println(getWebsiteURL());
         String name = "createHIT";
@@ -350,7 +389,11 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
-    public int addResponses(Survey survey, ITask task) throws SurveyException {
+    public int addResponses(
+            Survey survey,
+            ITask task)
+            throws SurveyException
+    {
         boolean success = false;
         Record r = null;
         try {
@@ -360,8 +403,8 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
         if (r == null) return -1;
         // references to things in the record
-        List<ISurveyResponse> validResponses = r.validResponses;
-        List<ISurveyResponse> botResponses = r.botResponses;
+        List<AbstractSurveyResponse> validResponses = r.validResponses;
+        List<AbstractSurveyResponse> botResponses = r.botResponses;
         // local vars
         SimpleDateFormat format = new SimpleDateFormat(SurveyResponse.dateFormat);
         int validResponsesToAdd = 0, botResponsesToAdd = 0;

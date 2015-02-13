@@ -1,7 +1,7 @@
 package edu.umass.cs.runner;
 
 import edu.umass.cs.runner.system.ITask;
-import edu.umass.cs.surveyman.analyses.ISurveyResponse;
+import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.utils.Gensym;
 import org.apache.log4j.Logger;
@@ -18,8 +18,8 @@ public class Record {
     final public Survey survey;
     public Library library;
     final public String rid = gensym.next();
-    public List<ISurveyResponse> validResponses;
-    public List<ISurveyResponse> botResponses;
+    public List<AbstractSurveyResponse> validResponses;
+    public List<AbstractSurveyResponse> botResponses;
     private Deque<ITask> tasks; // these should be hitids
     private String htmlFileName = "";
     public BackendType backendType;
@@ -52,8 +52,8 @@ public class Record {
         }
         this.survey = survey;
         this.library = someLib; //new MturkLibrary();
-        this.validResponses = new ArrayList<ISurveyResponse>();
-        this.botResponses = new ArrayList<ISurveyResponse>();
+        this.validResponses = new ArrayList<AbstractSurveyResponse>();
+        this.botResponses = new ArrayList<AbstractSurveyResponse>();
         this.tasks = new ArrayDeque<ITask>();
         this.backendType = backendType;
         LOGGER.info(String.format("New record with id (%s) created for survey %s (%s)."

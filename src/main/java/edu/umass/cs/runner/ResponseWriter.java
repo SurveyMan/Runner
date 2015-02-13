@@ -1,7 +1,7 @@
 package edu.umass.cs.runner;
 
+import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
-import edu.umass.cs.surveyman.analyses.ISurveyResponse;
 import edu.umass.cs.surveyman.analyses.OptTuple;
 import edu.umass.cs.surveyman.input.AbstractParser;
 import edu.umass.cs.surveyman.survey.HTMLComponent;
@@ -48,7 +48,7 @@ public class ResponseWriter {
         return s.toString();
     }
 
-    private static String outputQuestionResponse(Survey survey, IQuestionResponse qr, ISurveyResponse sr) {
+    private static String outputQuestionResponse(Survey survey, IQuestionResponse qr, AbstractSurveyResponse sr) {
 
         StringBuilder retval = new StringBuilder();
 
@@ -76,7 +76,7 @@ public class ResponseWriter {
                 toWrite.append(String.format("%s%%%d$s", sep, i+1));
             retval.append(String.format(toWrite.toString()
                     , sr.getSrid()
-                    , sr.workerId()
+                    , sr.getWorkerId()
                     , survey.sid
                     , qr.getQuestion().quid
                     , qtext.toString()
@@ -107,21 +107,21 @@ public class ResponseWriter {
 
     }
 
-    public static String outputSurveyResponse(Survey survey, ISurveyResponse sr) {
+    public static String outputSurveyResponse(Survey survey, AbstractSurveyResponse sr) {
 
         StringBuilder retval = new StringBuilder();
 
-        for (IQuestionResponse qr : sr.getResponses())
+        for (IQuestionResponse qr : sr.getAllResponses())
             retval.append(outputQuestionResponse(survey, qr, sr));
 
         return retval.toString();
     }
 
-    public static String outputSurveyResponses(Survey survey, List<ISurveyResponse> surveyResponses) {
+    public static String outputSurveyResponses(Survey survey, List<AbstractSurveyResponse> surveyResponses) {
 
         StringBuilder retval = new StringBuilder();
 
-        for (ISurveyResponse sr : surveyResponses)
+        for (AbstractSurveyResponse sr : surveyResponses)
             retval.append(outputSurveyResponse(survey, sr));
 
         return retval.toString();

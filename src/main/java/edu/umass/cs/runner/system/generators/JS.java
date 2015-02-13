@@ -17,7 +17,12 @@ public class JS {
     
     private static final Logger LOGGER = Logger.getLogger("system.mturk");
 
-    private static String makeJS(Component preview) throws SurveyException, IOException, ProcessingException {
+    private static String makeJS(
+            Component preview)
+            throws SurveyException,
+            IOException,
+            ProcessingException
+    {
         String loadPreview;
         if (preview instanceof HTMLComponent)
             loadPreview = String.format(" var loadPreview = function () { $('#preview').load('%s'); }; "
@@ -26,7 +31,12 @@ public class JS {
         return loadPreview;
     }
 
-    public static String getJSString(Survey survey, Component preview) throws SurveyException, IOException {
+    public static String getJSString(
+            Survey survey,
+            Component preview)
+            throws SurveyException,
+            IOException
+    {
         String js = "";
         try {
             js = makeJS(preview) + String.format("SurveyMan.display.ready(%s, function() { %s });",

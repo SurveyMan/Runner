@@ -11,7 +11,7 @@ import edu.umass.cs.runner.system.mturk.MturkLibrary;
 import edu.umass.cs.runner.system.mturk.MturkResponseManager;
 import edu.umass.cs.runner.system.mturk.MturkTask;
 import edu.umass.cs.runner.utils.Slurpie;
-import edu.umass.cs.surveyman.analyses.ISurveyResponse;
+import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 
@@ -25,16 +25,25 @@ public class JobManager {
         }
     }
 
-    public static void recordBonus(double bonus, ISurveyResponse sr, Survey survey) throws IOException {
-        String entry = String.format("%s,%s,%f\n", sr.workerId(), survey.sourceName, bonus);
+    public static void recordBonus(
+            double bonus,
+            AbstractSurveyResponse sr,
+            Survey survey)
+            throws IOException
+    {
+        String entry = String.format("%s,%s,%f\n", sr.getWorkerId(), survey.sourceName, bonus);
         dump(Library.BONUS_DATA, entry, true);
     }
 
-    public static boolean bonusPaid(ISurveyResponse sr, Survey survey) throws IOException {
+    public static boolean bonusPaid(
+            AbstractSurveyResponse sr,
+            Survey survey)
+            throws IOException
+    {
         String data = Slurpie.slurp(Library.BONUS_DATA);
         for (String line : data.split("\n")){
             String[] pieces = line.split(",");
-            if (pieces[0].equals(sr.workerId()) && pieces[1].equals(survey.sourceName)) {
+            if (pieces[0].equals(sr.getWorkerId()) && pieces[1].equals(survey.sourceName)) {
                 Runner.LOGGER.info("BONUS PAID for response with id " + sr.getSrid());
                 return true;
             }
@@ -42,21 +51,36 @@ public class JobManager {
         return false;
     }
 
-    public static String makeJobID(Survey survey) {
+    public static String makeJobID(
+            Survey survey)
+    {
         return survey.sourceName+"_"+survey.sid+"_"+ Library.TIME;
     }
 
-    public static void dump(String filename, String s, boolean append) throws IOException {
+    public static void dump(
+            String filename,
+            String s,
+            boolean append)
+            throws IOException
+    {
         BufferedWriter writer = new BufferedWriter(new FileWriter(filename, append));
         writer.write(s);
         writer.close();
     }
 
-    public static void dump(String filename, String s) throws IOException {
+    public static void dump(
+            String filename,
+            String s)
+            throws IOException
+    {
         dump(filename, s, true);
     }
 
-    public static boolean addToUnfinishedJobsList(Survey survey, Record record, BackendType backendType) {
+    public static boolean addToUnfinishedJobsList(
+            Survey survey,
+            Record record,
+            BackendType backendType)
+    {
         StringBuilder data = new StringBuilder();
         data.append(makeJobID(survey)).append(",").append(backendType.name());
         for (ITask task : record.getAllTasks())
@@ -72,7 +96,10 @@ public class JobManager {
         return false;
     }
 
-    public static boolean saveParametersAndSurvey(Survey survey, Record record) {
+    public static boolean saveParametersAndSurvey(
+            Survey survey,
+            Record record)
+    {
         try {
             String jobID = makeJobID(survey);
             String dir = Library.STATEDATADIR + Library.fileSep + jobID + Library.fileSep;
@@ -93,7 +120,10 @@ public class JobManager {
         return false;
     }
 
-    public static BackendType getBackendTypeByJobID(String jobId) throws SystemException {
+    public static BackendType getBackendTypeByJobID(
+            String jobId)
+            throws SystemException
+    {
         try {
             String unfinished = Slurpie.slurp(Library.UNFINISHED_JOB_FILE);
             for (String line : unfinished.split("\n")) {
@@ -107,19 +137,29 @@ public class JobManager {
         throw new JobSynchronizationException(jobId);
     }
 
-    public static void addOldResponses(String jobId, Record record) throws SurveyException {
+    public static void addOldResponses(
+            String jobId,
+            Record record)
+            throws SurveyException
+    {
         record.outputFileName = Library.OUTDIR + Library.fileSep + jobId + ".csv";
         try {
             String[] responses = Slurpie.slurp(record.outputFileName).split("\n");
             Runner.LOGGER.info(record.outputFileName);
-            ISurveyResponse sr = new SurveyResponse("");
+            SurveyResponse sr = new SurveyResponse("");
             sr.readSurveyResponses(record.survey, new FileReader(record.outputFileName));
         } catch (IOException io) {
             Runner.LOGGER.info(io);
         }
     }
 
-    public static int populateTasks(String jobId, Record r, BackendType backendType) throws SystemException, SurveyException {
+    public static int populateTasks(
+            String jobId,
+            Record r,
+            BackendType backendType)
+            throws SystemException,
+            SurveyException
+    {
         try {
             String unfinished = Slurpie.slurp(Library.UNFINISHED_JOB_FILE);
             for (String line : unfinished.split("\n")) {
@@ -148,7 +188,9 @@ public class JobManager {
         return 0;
     }
 
-    public static void removeUnfinished(String jobId) {
+    public static void removeUnfinished(
+            String jobId)
+    {
         try {
             String unfinished = Slurpie.slurp(Library.UNFINISHED_JOB_FILE);
 
