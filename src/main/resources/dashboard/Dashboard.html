@@ -59,21 +59,52 @@
             $("#backend").append(data["backend"]);
         });
     </script>
+    <style>
+        body { padding-top: 60px; }
+    </style>
 </head>
 <body>
-<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
         <div class="navbar-header">
             <a class="navbar-brand" href="">SurveyMan Runner Dashboard</a>
         </div>
-        <div id="navbar" class="navbar-collapse collapse">
+        <div id="navbar">
             <ul class="nav navbar-nav navbar-right">
                 <li><a id="surveyfilename" href="#">Source File: </a></li>
                 <li><a id="backend" href="#">Backend: </a></li>
             </ul>
         </div>
     </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 bg-info">
+            <table>
+                <tr>
+                    <td>Target #/Responses:</td><td id="targetresponses"></td>
+                </tr>
+                <tr>
+                    <td>Expected Cost:</td><td id="expectedcost"></td>
+                </tr>
+                <tr>
+                    <td>Current cost:</td><td id="currentcost"></td>
+                </tr>
+                <tr>
+                    <td>Classification method:</td><td id="classificationmethod"></td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-8">
+            <table>
+                <tr></tr>
+            </table>
+        </div>
+    </div>
 </div>
+    </div>
 <!--<script src="http://getbootstrap.com/assets/js/docs.min.js"></script>-->
 <!-- Latest compiled and minified JavaScript -->
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>

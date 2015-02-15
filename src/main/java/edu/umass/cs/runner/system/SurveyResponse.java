@@ -5,6 +5,9 @@ import java.util.*;
 
 import com.google.gson.JsonParser;
 import edu.umass.cs.runner.Record;
+import edu.umass.cs.runner.system.output.AnswerQuad;
+import edu.umass.cs.runner.system.output.AnswerStruct;
+import edu.umass.cs.runner.system.output.SurveyResponseStruct;
 import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
 import edu.umass.cs.surveyman.analyses.ISurveyResponseReader;
@@ -38,19 +41,11 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
     public static final Logger LOGGER = Logger.getLogger("survey");
     public static final Gensym gensym = new Gensym("sr");
     public static final String dateFormat = "EEE, d MMM yyyy HH:mm:ss Z";
-    public static final String sep = ",";
 
     protected String srid = gensym.next();
-    private String workerId = "";
-    private boolean recorded = false;
     private List<IQuestionResponse> responses = new ArrayList<IQuestionResponse>();
     public Record record;
-    //to differentiate real/random responses (for testing)
-    private boolean real = true;
-    private double score;
-    private double pval;
-    public String msg;
-    
+
     /** otherValues is a map of the key value pairs that are not necessary for quality control,
      *  but are returned by the service. They should be pushed through the system
      *  and spit into an output file, unaltered.
@@ -72,26 +67,6 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
     }
 
     @Override
-    public void setScore(double score){
-        this.score = score;
-    }
-
-    @Override
-    public double getScore(){
-        return this.score;
-    }
-
-    @Override
-    public void setThreshold(double pval) {
-        this.pval = pval;
-    }
-
-    @Override
-    public double getThreshold() {
-        return pval;
-    }
-
-    @Override
     public boolean surveyResponseContainsAnswer(List<Component> components) {
         for (IQuestionResponse qr : this.responses) {
             for (OptTuple optTuple : qr.getOpts()) {
@@ -100,42 +75,6 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
             }
         }
         return false;
-    }
-
-
-    @Override
-    public List<IQuestionResponse> getAllResponses() {
-        return responses;
-    }
-
-    @Override
-    public void setResponses(List<IQuestionResponse> responses) {
-        this.responses = responses;
-    }
-
-    @Override
-    public boolean isRecorded() {
-        return recorded;
-    }
-
-    @Override
-    public void setRecorded(boolean recorded) {
-        this.recorded = recorded;
-    }
-
-    @Override
-    public String getSrid() {
-        return srid;
-    }
-
-    @Override
-    public void setSrid(String srid){
-        this.srid = srid;
-    }
-
-    @Override
-    public String getWorkerId() {
-        return workerId;
     }
 
     @Override
@@ -263,6 +202,24 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
             }
         }
         return retval;
+    }
+
+    public SurveyResponseStruct makeStruct()
+    {
+        double score = this.getScore();
+        double threshold = this.getThreshold();
+        List<AnswerQuad> answerQuads = new ArrayList<AnswerQuad>();
+        for (IQuestionResponse questionResponse : this.responses) {
+            for (OptTuple optTuple : questionResponse.getOpts())
+                answerQuads.add(new AnswerQuad(
+                        questionResponse.getQuestion().quid,
+                        optTuple.c.getCid(),
+                        questionResponse.getIndexSeen(),
+                        optTuple.i)
+                );
+        }
+
+        return new SurveyResponseStruct(this.getSrid(), answerQuads, score,
     }
 
 }
