@@ -5,13 +5,13 @@ import java.io.IOException;
 
 import com.github.fge.jsonschema.exceptions.ProcessingException;
 //import com.googlecode.htmlcompressor.compressor.ClosureJavaScriptCompressor;
+import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.survey.Component;
 import edu.umass.cs.surveyman.survey.HTMLComponent;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.apache.log4j.Logger;
-import edu.umass.cs.runner.Library;
 
 public class JS {
     
@@ -40,7 +40,7 @@ public class JS {
         String js = "";
         try {
             js = makeJS(preview) + String.format("SurveyMan.display.ready(%s, function() { %s });",
-                    survey.jsonize(), Slurpie.slurp(Library.JSSKELETON, true));
+                    survey.jsonize(), Slurpie.slurp(AbstractLibrary.JSSKELETON, true));
         } catch (FileNotFoundException ex) {
             LOGGER.fatal(ex);
             ex.printStackTrace();

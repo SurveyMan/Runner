@@ -1,20 +1,19 @@
 import com.amazonaws.mturk.service.exception.AccessKeyException;
-import edu.umass.cs.runner.AbstractResponseManager;
-import edu.umass.cs.runner.BackendType;
-import edu.umass.cs.runner.system.mturk.MturkLibrary;
-import edu.umass.cs.runner.system.mturk.MturkResponseManager;
-import edu.umass.cs.runner.system.mturk.MturkSurveyPoster;
+import edu.umass.cs.runner.system.backend.AbstractResponseManager;
+import edu.umass.cs.runner.system.backend.KnownBackendType;
+import edu.umass.cs.runner.system.backend.known.mturk.MturkLibrary;
+import edu.umass.cs.runner.system.backend.known.mturk.MturkResponseManager;
+import edu.umass.cs.runner.system.backend.known.mturk.MturkSurveyPoster;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
-import edu.umass.cs.surveyman.input.exceptions.SyntaxException;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import edu.umass.cs.runner.Record;
-import edu.umass.cs.runner.system.ISurveyPoster;
-import edu.umass.cs.runner.system.ITask;
+import edu.umass.cs.runner.system.backend.ISurveyPoster;
+import edu.umass.cs.runner.system.backend.ITask;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -40,7 +39,7 @@ public class MTurkTest extends TestLog {
         CSVParser parser = new CSVParser(new CSVLexer(testsFiles[i], String.valueOf(separators[i])));
         Survey survey = parser.parse();
         MturkLibrary lib = new MturkLibrary();
-        Record record = new Record(survey, lib, BackendType.MTURK);
+        Record record = new Record(survey, lib, KnownBackendType.MTURK);
         AbstractResponseManager responseManager = new MturkResponseManager(lib);
         ISurveyPoster surveyPoster = new MturkSurveyPoster();
         record.library.props.setProperty("hitlifetime", "3000");

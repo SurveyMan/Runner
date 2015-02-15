@@ -1,6 +1,8 @@
 package edu.umass.cs.runner;
 
-import edu.umass.cs.runner.system.ITask;
+import edu.umass.cs.runner.system.backend.AbstractLibrary;
+import edu.umass.cs.runner.system.backend.KnownBackendType;
+import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.utils.Gensym;
@@ -16,33 +18,33 @@ public class Record {
 
     public String outputFileName;
     final public Survey survey;
-    public Library library;
+    public AbstractLibrary library;
     final public String rid = gensym.next();
     public List<AbstractSurveyResponse> validResponses;
     public List<AbstractSurveyResponse> botResponses;
     private Deque<ITask> tasks; // these should be hitids
     private String htmlFileName = "";
-    public BackendType backendType;
+    public KnownBackendType backendType;
 
 
-    public Record(final Survey survey, Library someLib, BackendType backendType)  {
+    public Record(final Survey survey, AbstractLibrary someLib, KnownBackendType backendType)  {
         try {
-            (new File(Library.OUTDIR)).mkdir();
+            (new File(AbstractLibrary.OUTDIR)).mkdir();
             (new File("logs")).mkdir();
             File outfile = new File(String.format("%s%s%s_%s_%s.csv"
-                    , Library.OUTDIR
-                    , Library.fileSep
+                    , AbstractLibrary.OUTDIR
+                    , AbstractLibrary.fileSep
                     , survey.sourceName
                     , survey.sid
-                    , Library.TIME));
+                    , AbstractLibrary.TIME));
             outfile.createNewFile();
             File htmlFileName = new File(String.format("%s%slogs%s%s_%s_%s.html"
                     , (new File("")).getAbsolutePath()
-                    , Library.fileSep
-                    , Library.fileSep
+                    , AbstractLibrary.fileSep
+                    , AbstractLibrary.fileSep
                     , survey.sourceName
                     , survey.sid
-                    , Library.TIME));
+                    , AbstractLibrary.TIME));
             if (! htmlFileName.exists())
                 htmlFileName.createNewFile();
             this.outputFileName = outfile.getCanonicalPath();
@@ -66,11 +68,11 @@ public class Record {
     public static String getHtmlFileName(Survey survey) throws IOException {
         return new File(String.format("%s%slogs%s%s_%s_%s.html"
                 , (new File("")).getAbsolutePath()
-                , Library.fileSep
-                , Library.fileSep
+                , AbstractLibrary.fileSep
+                , AbstractLibrary.fileSep
                 , survey.sourceName
                 , survey.sid
-                , Library.TIME)).getCanonicalPath();
+                , AbstractLibrary.TIME)).getCanonicalPath();
     }
 
     public String getHtmlFileName(){

@@ -1,14 +1,13 @@
-import edu.umass.cs.runner.BackendType;
+import edu.umass.cs.runner.system.backend.KnownBackendType;
 import edu.umass.cs.runner.Record;
 import edu.umass.cs.runner.ResponseWriter;
 import edu.umass.cs.runner.system.SurveyResponse;
 import edu.umass.cs.runner.system.generators.HTML;
-import edu.umass.cs.runner.system.mturk.MturkLibrary;
-import edu.umass.cs.runner.system.mturk.generators.MturkHTML;
-import edu.umass.cs.runner.system.mturk.generators.MturkXML;
+import edu.umass.cs.runner.system.backend.known.mturk.MturkLibrary;
+import edu.umass.cs.runner.system.backend.known.mturk.generators.MturkHTML;
+import edu.umass.cs.runner.system.backend.known.mturk.generators.MturkXML;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
-import edu.umass.cs.surveyman.input.exceptions.SyntaxException;
 import edu.umass.cs.surveyman.qc.RandomRespondent;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
@@ -16,7 +15,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.io.IOException;
 import java.io.StringReader;
 
 @RunWith(JUnit4.class)
@@ -32,7 +30,7 @@ public class SystemTest extends TestLog {
             for ( int i = 0 ; i < testsFiles.length ; i++ ) {
                 CSVParser csvParser = new CSVParser(new CSVLexer(testsFiles[i], String.valueOf(separators[i])));
                 Survey survey = csvParser.parse();
-                Record record = new Record(survey, new MturkLibrary(), BackendType.MTURK);
+                Record record = new Record(survey, new MturkLibrary(), KnownBackendType.MTURK);
                 HTML.getHTMLString(record, new MturkHTML());
                 LOGGER.info(testsFiles[i]+" generated IHTML successfully.");
             }

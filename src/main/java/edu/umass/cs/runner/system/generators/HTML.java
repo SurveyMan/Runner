@@ -1,6 +1,7 @@
 package edu.umass.cs.runner.system.generators;
 
-import edu.umass.cs.runner.IHTML;
+import edu.umass.cs.runner.system.backend.AbstractLibrary;
+import edu.umass.cs.runner.system.backend.IHTML;
 import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.input.AbstractLexer;
@@ -14,7 +15,6 @@ import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import edu.umass.cs.runner.Library;
 import edu.umass.cs.runner.Record;
 
 import java.io.*;
@@ -88,7 +88,7 @@ public class HTML {
             assert(record.library.props!=null);
             String strPreview = cleanedPreview(record);
             Component preview = AbstractParser.parseComponent(HTMLComponent.isHTMLComponent(strPreview) ? AbstractLexer.xmlChars2HTML(strPreview) : strPreview, -1, -1);
-            html = String.format(Slurpie.slurp(Library.HTMLSKELETON)
+            html = String.format(Slurpie.slurp(AbstractLibrary.HTMLSKELETON)
                     , record.survey.encoding
                     , JS.getJSString(record.survey, preview)
                     , stringifyPreview(preview)
@@ -97,7 +97,7 @@ public class HTML {
                     , record.survey.source
                     , record.outputFileName
                     , backendHTML.getHTMLString()
-                    , Slurpie.slurp(Library.CUSTOMCSS, true)
+                    , Slurpie.slurp(AbstractLibrary.CUSTOMCSS, true)
             );
         } catch (FileNotFoundException ex) {
             Runner.LOGGER.fatal(ex);

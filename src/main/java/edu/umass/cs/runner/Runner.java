@@ -1,19 +1,20 @@
 package edu.umass.cs.runner;
 
+import clojure.java.api.Clojure;
+import clojure.lang.IFn;
 import com.amazonaws.mturk.service.exception.AccessKeyException;
 import com.amazonaws.mturk.service.exception.InsufficientFundsException;
 import edu.umass.cs.runner.system.BoxedBool;
-import edu.umass.cs.runner.system.ISurveyPoster;
-import edu.umass.cs.runner.system.ITask;
+import edu.umass.cs.runner.system.backend.*;
 import edu.umass.cs.runner.system.Parameters;
-import edu.umass.cs.runner.system.localhost.LocalLibrary;
-import edu.umass.cs.runner.system.localhost.LocalResponseManager;
-import edu.umass.cs.runner.system.localhost.LocalSurveyPoster;
-import edu.umass.cs.runner.system.localhost.Server;
-import edu.umass.cs.runner.system.localhost.server.WebServerException;
-import edu.umass.cs.runner.system.mturk.MturkLibrary;
-import edu.umass.cs.runner.system.mturk.MturkResponseManager;
-import edu.umass.cs.runner.system.mturk.MturkSurveyPoster;
+import edu.umass.cs.runner.system.backend.known.localhost.LocalLibrary;
+import edu.umass.cs.runner.system.backend.known.localhost.LocalResponseManager;
+import edu.umass.cs.runner.system.backend.known.localhost.LocalSurveyPoster;
+import edu.umass.cs.runner.system.backend.known.localhost.Server;
+import edu.umass.cs.runner.system.backend.known.localhost.server.WebServerException;
+import edu.umass.cs.runner.system.backend.known.mturk.MturkLibrary;
+import edu.umass.cs.runner.system.backend.known.mturk.MturkResponseManager;
+import edu.umass.cs.runner.system.backend.known.mturk.MturkSurveyPoster;
 import edu.umass.cs.runner.utils.ArgReader;
 import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
@@ -25,6 +26,7 @@ import net.sourceforge.argparse4j.inf.Argument;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -37,12 +39,23 @@ public class Runner {
 
     public static final Logger LOGGER = LogManager.getLogger(Runner.class.getName());
     private static long timeSinceLastNotice = System.currentTimeMillis();
-    public static BackendType backendType;
+    private static final String LOCALDIR = ".surveyman";
+    private static final String CURRENT_DASHBOARD_DATA = String.format(
+            "%s%scurrent_dashboard.json", LOCALDIR, AbstractLibrary.fileSep);
+    public static KnownBackendType backendType;
     public static AbstractResponseManager responseManager;
     public static ISurveyPoster surveyPoster;
-    public static Library library;
+    public static AbstractLibrary library;
     public static final BoxedBool interrupt = new BoxedBool();
     public static final double getBasePay = 7.25;
+
+    public static void makeLocalFolder()
+    {
+        File f = new File(".surveyman");
+        if (!f.exists())
+            assert f.mkdir();
+            LOGGER.info(f.getAbsolutePath());
+    }
 
     public static ArgumentParser makeArgParser()
     {
@@ -79,7 +92,7 @@ public class Runner {
             throws IOException
     {
         // if it's an unrecognized backend type, it will fail earlier
-        backendType = BackendType.valueOf(bt);
+        backendType = KnownBackendType.valueOf(bt);
         switch (backendType) {
             case LOCALHOST:
                 responseManager = new LocalResponseManager();
@@ -93,6 +106,7 @@ public class Runner {
                 surveyPoster.init(config);
                 break;
         }
+        makeLocalFolder();
     }
 
     public static void init(
@@ -103,7 +117,7 @@ public class Runner {
     }
 
     public static void init(
-            BackendType bt)
+            KnownBackendType bt)
             throws IOException
     {
         init(bt.name());
@@ -142,7 +156,7 @@ public class Runner {
             final Survey survey)
     {
         // grab responses for each incomplete survey in the responsemanager
-        final BackendType backendType = Runner.backendType;
+        final KnownBackendType backendType = Runner.backendType;
         return new Thread(){
             @Override
             public void run(){
@@ -260,6 +274,24 @@ public class Runner {
         };
     }
 
+    public static void dashboardDump(Namespace ns){
+        try {
+            FileWriter out = new FileWriter(CURRENT_DASHBOARD_DATA);
+            List<String> strings = new ArrayList<String>();
+            for (Map.Entry<String, Object> entry : ns.getAttrs().entrySet())
+                strings.add(String.format("\"%s\" : \"%s\"", entry.getKey(), entry.getValue()));
+            out.write("{ " + StringUtils.join(strings, ", ") + " }");
+            out.flush();
+            out.close();
+        } catch (FileNotFoundException e) {
+            LOGGER.fatal(e);
+            System.exit(1);
+        } catch (IOException io) {
+            LOGGER.fatal(io);
+            System.exit(1);
+        }
+    }
+
     public static void run(
             final Record record)
             throws InterruptedException,
@@ -371,6 +403,13 @@ public class Runner {
         }
     }
 
+    public static void runDashboard(Namespace ns){
+        IFn require = Clojure.var("clojure.core", "require");
+        require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
+        IFn run = Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "run");
+        run.invoke(ns);
+    }
+
     public static void main(
             String[] args)
             throws IOException,
@@ -391,12 +430,16 @@ public class Runner {
 
             init(ns.getString("backend"), ns.getString("properties"), ns.getString("config"));
 
-            if (backendType.equals(BackendType.LOCALHOST))
+            if (backendType.equals(KnownBackendType.LOCALHOST))
                 Server.startServe();
+
+            dashboardDump(ns);
+
+            runDashboard(ns);
 
             runAll(ns.getString("survey"), ns.getString("separator"));
 
-            if (backendType.equals(BackendType.LOCALHOST))
+            if (backendType.equals(KnownBackendType.LOCALHOST))
                 Server.endServe();
 
             String msg = String.format("Shutting down. Execute this program with args %s to repeat.", Arrays.toString(args));

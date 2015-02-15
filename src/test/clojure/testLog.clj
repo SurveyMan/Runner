@@ -4,7 +4,8 @@
              (survey Survey)
              (system.localhost Server LocalLibrary)
              (interstitial Library Record BackendType)
-             [edu.umass.cs.runner Record Library])
+             [edu.umass.cs.runner Record Library]
+             [edu.umass.cs.runner.system.backend Library AbstractLibrary AbstractLibrary])
     (:import (org.apache.log4j Logger FileAppender PatternLayout)
              (java.util.regex Pattern)
              (qc RandomRespondent RandomRespondent$AdversaryType Metrics)
