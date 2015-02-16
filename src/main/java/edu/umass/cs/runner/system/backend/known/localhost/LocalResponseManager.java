@@ -108,12 +108,37 @@ public class LocalResponseManager extends AbstractResponseManager {
             for (Server.IdResponseTuple tupe : tuples) {
                 SurveyResponse sr = parseResponse(tupe.id, tupe.xml, survey, r, null);
                 assert sr!=null;
-                if (QCMetrics.entropyClassification(survey, sr, r.validResponses, false, 0.05)){
+                boolean valid = false;
+                switch (r.classifier) {
+                    case ENTROPY:
+                        valid = QCMetrics.entropyClassification(
+                                survey,
+                                sr,
+                                new ArrayList<AbstractSurveyResponse>(r.getAllResponses()),
+                                r.smoothing,
+                                r.alpha
+                        );
+                        break;
+                    case LOG_LIKELIHOOD:
+                        valid = QCMetrics.logLikelihoodClassification(
+                                survey,
+                                sr,
+                                new ArrayList<AbstractSurveyResponse>(r.getAllResponses()),
+                                r.smoothing,
+                                r.alpha
+                        );
+                        break;
+                    default:
+                        throw new RuntimeException("Unknown classification metric: " + r.classifier.name());
+                }
+                if (valid) {
+                    r.validResponses.add(sr);
+                    r.botResponses.remove(sr);
+                    validResponsesToAdd++;
+                } else {
+                    r.validResponses.remove(sr);
                     r.botResponses.add(sr);
                     botResponsesToAdd++;
-                } else {
-                    r.validResponses.add(sr);
-                    validResponsesToAdd++;
                 }
             }
         } catch (IOException e) {

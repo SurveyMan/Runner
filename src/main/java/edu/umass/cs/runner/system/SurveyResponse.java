@@ -43,8 +43,8 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
     public static final String dateFormat = "EEE, d MMM yyyy HH:mm:ss Z";
 
     protected String srid = gensym.next();
-    private List<IQuestionResponse> responses = new ArrayList<IQuestionResponse>();
     public Record record;
+    private String workerId;
 
     /** otherValues is a map of the key value pairs that are not necessary for quality control,
      *  but are returned by the service. They should be pushed through the system
@@ -58,17 +58,23 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
         this.srid = wID;
     }
 
+    @Override
+    public String getSrid()
+    {
+        return this.workerId;
+    }
+
     public SurveyResponse (Survey s, String workerId, String xmlAns, Record record, Map<String, String> ov)
             throws SurveyException, DocumentException, IOException, SAXException, ParserConfigurationException {
         this.workerId = workerId;
         this.record = record;
         otherValues.putAll(ov);
-        this.responses = parse(s, xmlAns);
+        this.setResponses(parse(s, xmlAns));
     }
 
     @Override
     public boolean surveyResponseContainsAnswer(List<Component> components) {
-        for (IQuestionResponse qr : this.responses) {
+        for (IQuestionResponse qr : this.getAllResponses()) {
             for (OptTuple optTuple : qr.getOpts()) {
                 if (components.contains(optTuple.c))
                     return true;
@@ -80,7 +86,7 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
     @Override
     public Map<String,IQuestionResponse> resultsAsMap() {
         HashMap<String,IQuestionResponse> res = new HashMap<String, IQuestionResponse>();
-        for(IQuestionResponse resp : responses) {
+        for(IQuestionResponse resp : this.getAllResponses()) {
             assert resp.getQuestion().data!=null : resp.getQuestion().quid;
             res.put(resp.getQuestion().quid, resp);
         }
@@ -209,7 +215,7 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
         double score = this.getScore();
         double threshold = this.getThreshold();
         List<AnswerQuad> answerQuads = new ArrayList<AnswerQuad>();
-        for (IQuestionResponse questionResponse : this.responses) {
+        for (IQuestionResponse questionResponse : this.getAllResponses()) {
             for (OptTuple optTuple : questionResponse.getOpts())
                 answerQuads.add(new AnswerQuad(
                         questionResponse.getQuestion().quid,
@@ -218,8 +224,14 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
                         optTuple.i)
                 );
         }
-
-        return new SurveyResponseStruct(this.getSrid(), answerQuads, score,
+        for (Map.Entry<String, String> s : this.otherValues.entrySet())
+            answerQuads.add(new AnswerQuad(s.getKey(), s.getValue(), -1, -1));
+        return new SurveyResponseStruct(
+                this.getSrid(),
+                new AnswerStruct(answerQuads),
+                score,
+                threshold,
+                score > threshold);
     }
 
 }

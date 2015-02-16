@@ -2,8 +2,10 @@
   (:gen-class
     :name edu.umass.cs.runner.dashboard.Dashboard
     :methods [#^{:static true} [run [net.sourceforge.argparse4j.inf.Namespace] void]])
-  (:import net.sourceforge.argparse4j.inf.Namespace)
+  (:import net.sourceforge.argparse4j.inf.Namespace [edu.umass.cs.surveyman.qc QCMetrics])
   (:import edu.umass.cs.surveyman.utils.Slurpie)
+  (:import edu.umass.cs.runner.Record)
+  (:import edu.umass.cs.runner.system.Parameters)
   (:use ring.adapter.jetty)
   (:use ring.middleware.params)
   (:use ring.util.codec)
@@ -12,6 +14,7 @@
   )
 
 (def runner-args (atom nil))
+(def record-data (atom nil))
 (def PORT 9000)
 
 (defn get-content-type-for-request
@@ -44,7 +47,16 @@
                     (condp = item
                       "survey_data" (json/write-str {"survey" (.get @runner-args "survey")
                                                      "backend" (.get @runner-args "backend")
+                                                     "targetresponses" (-> @record-data
+                                                                         (.library)
+                                                                         (.props)
+                                                                         (.get Parameters/NUM_PARTICIPANTS)
+                                                                         )
+                                                     "expectedcost" (.expectedCost @record-data)
+                                                     "classificationmethod" (.get @runner-args "classifier")
+                                                     "record-pointer" (System/identityHashCode @record-data)
                                                      })
+                      "response_data" (.jsonizeResponses @record-data)
                       )
                     )
                   (Slurpie/slurp (clojure.string/join "" (rest uri))))
@@ -54,14 +66,15 @@
   )
 
 (defn run
-  [^Namespace ns]
+  [^Namespace ns ^Record record]
   (reset! runner-args ns)
+  (reset! record-data record)
   (ring.adapter.jetty/run-jetty
     handler
     {:port PORT :join? false})
   )
 
 (defn -run
-  [^Namespace ns]
+  [^Namespace ns ^Record record]
   (run ns)
   )

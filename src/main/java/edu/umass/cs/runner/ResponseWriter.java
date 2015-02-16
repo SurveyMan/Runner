@@ -48,7 +48,11 @@ public class ResponseWriter {
         return s.toString();
     }
 
-    private static String outputQuestionResponse(Survey survey, IQuestionResponse qr, AbstractSurveyResponse sr) {
+    private static String outputQuestionResponse(
+            Survey survey,
+            IQuestionResponse qr,
+            AbstractSurveyResponse sr)
+    {
 
         StringBuilder retval = new StringBuilder();
 
@@ -57,6 +61,8 @@ public class ResponseWriter {
         qtext.append(String.format("%s", qr.getQuestion().data.toString().replaceAll("\"", "\"\"")));
         qtext.insert(0, "\"");
         qtext.append("\"");
+
+        assert qr.getOpts().size() > 0;
 
         // response options
         for (OptTuple opt : qr.getOpts()) {
@@ -107,12 +113,19 @@ public class ResponseWriter {
 
     }
 
-    public static String outputSurveyResponse(Survey survey, AbstractSurveyResponse sr) {
+    public static String outputSurveyResponse(
+            Survey survey,
+            AbstractSurveyResponse sr)
+    {
 
         StringBuilder retval = new StringBuilder();
 
+        assert sr.getAllResponses().size() > 0 : "Cannot have 0 responses to a survey!!";
+
         for (IQuestionResponse qr : sr.getAllResponses())
             retval.append(outputQuestionResponse(survey, qr, sr));
+
+        assert retval.length() != 0 : "Cannot have a survey response of length 0!!";
 
         return retval.toString();
     }

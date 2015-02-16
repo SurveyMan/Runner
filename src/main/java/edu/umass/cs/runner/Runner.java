@@ -5,6 +5,7 @@ import clojure.lang.IFn;
 import com.amazonaws.mturk.service.exception.AccessKeyException;
 import com.amazonaws.mturk.service.exception.InsufficientFundsException;
 import edu.umass.cs.runner.system.BoxedBool;
+import edu.umass.cs.runner.system.SurveyResponse;
 import edu.umass.cs.runner.system.backend.*;
 import edu.umass.cs.runner.system.Parameters;
 import edu.umass.cs.runner.system.backend.known.localhost.LocalLibrary;
@@ -19,6 +20,7 @@ import edu.umass.cs.runner.utils.ArgReader;
 import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
+import edu.umass.cs.surveyman.qc.Classifier;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -216,28 +218,34 @@ public class Runner {
             Survey survey,
             Record record)
     {
-        List<AbstractSurveyResponse> responseList = new ArrayList<AbstractSurveyResponse>(record.validResponses);
-        for (AbstractSurveyResponse sr : responseList) {
+        assert record.getAllResponses().size() > 0 :
+                "Should not be calling Runner.writeResponses if we have not recieved any responses. ";
+        for (SurveyResponse sr : record.getAllResponses()) {
+            assert sr.getAllResponses().size() > 0 : String.format(
+                    "Respondent %s should have answered at least 1 question.",
+                    sr.getSrid());
             if (!sr.isRecorded()) {
-                BufferedWriter bw = null;
+                PrintWriter bw = null;
                 LOGGER.info("Writing " + sr.getSrid() + "...");
                 try {
                     LOGGER.info(record.outputFileName);
                     File f = new File(record.outputFileName);
-                    bw = new BufferedWriter(new FileWriter(f, true));
+                    bw = new PrintWriter(new FileWriter(f, true));
                     if (! f.exists() || f.length()==0)
-                        bw.write(ResponseWriter.outputHeaders(survey));
+                        bw.print(ResponseWriter.outputHeaders(survey));
                     String txt = ResponseWriter.outputSurveyResponse(survey, sr);
-                    bw.write(txt);
-                    sr.setRecorded(true);
+                    LOGGER.info(txt);
+                    bw.print(txt);
+                    bw.flush();
                     bw.close();
+                    sr.setRecorded(true);
                 } catch (IOException ex) {
                     LOGGER.info(ex.getMessage());
                     LOGGER.warn(ex);
                 } finally {
                     try {
                         if (bw != null) bw.close();
-                    } catch (IOException ex) {
+                    } catch (Exception ex) {
                         LOGGER.warn(ex);
                     }
                 }
@@ -256,7 +264,12 @@ public class Runner {
                 do {
                     try {
                         record = AbstractResponseManager.getRecord(survey);
-                        writeResponses(survey, record);
+                        //LOGGER.debug("Record identity:\t"+System.identityHashCode(record));
+                        synchronized (record) {
+                            if(record.needsWrite()) {
+                                writeResponses(survey, record);
+                            }
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (SurveyException e) {
@@ -368,7 +381,8 @@ public class Runner {
 
     public static void runAll(
             String s,
-            String sep)
+            String sep,
+            Namespace ns)
             throws InvocationTargetException,
             IllegalAccessException,
             NoSuchMethodException,
@@ -379,7 +393,10 @@ public class Runner {
             CSVParser csvParser = new CSVParser(new CSVLexer(s, sep));
             Survey survey = csvParser.parse();
             // create and store the record
-            final Record record = new Record(survey, library, backendType);
+            Classifier classifier = Classifier.valueOf(((String) ns.get("classifier")).toUpperCase());
+            boolean smoothing = Boolean.valueOf((String) ns.get("smoothing"));
+            double alpha = Double.valueOf((String) ns.get("alpha"));
+            final Record record = new Record(survey, library, classifier, smoothing, alpha, backendType);
             AbstractResponseManager.putRecord(survey, record);
             // now we're ready to go
             Thread writer = makeWriter(survey);
@@ -395,6 +412,7 @@ public class Runner {
                 msg.append("\n\t" + surveyPoster.makeTaskURL(responseManager, task));
             LOGGER.info(msg.toString());
             System.out.println(msg.toString());
+            runDashboard(ns, record);
             runner.join();
             responder.join();
             writer.join();
@@ -403,11 +421,12 @@ public class Runner {
         }
     }
 
-    public static void runDashboard(Namespace ns){
+    public static void runDashboard(Namespace ns, Record record)
+    {
         IFn require = Clojure.var("clojure.core", "require");
         require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
         IFn run = Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "run");
-        run.invoke(ns);
+        run.invoke(ns, record);
     }
 
     public static void main(
@@ -435,9 +454,7 @@ public class Runner {
 
             dashboardDump(ns);
 
-            runDashboard(ns);
-
-            runAll(ns.getString("survey"), ns.getString("separator"));
+            runAll(ns.getString("survey"), ns.getString("separator"), ns);
 
             if (backendType.equals(KnownBackendType.LOCALHOST))
                 Server.endServe();

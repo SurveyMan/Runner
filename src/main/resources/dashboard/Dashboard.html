@@ -50,17 +50,16 @@
         stroke-width:2px;
         }
     </style>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.string/3.0.3/underscore.string.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" type="text/css">
-    <script>
-        $.getJSON("?json/survey_data", function (data) {
-            console.log(data);
-            $("#surveyfilename").append(data["survey"]);
-            $("#backend").append(data["backend"]);
-        });
-    </script>
     <style>
-        body { padding-top: 60px; }
+        .main {
+            padding-top: 60px;
+            padding-bottom: 1000px;
+        }
+
+        td { padding-right: 10px; }
     </style>
 </head>
 <body>
@@ -81,7 +80,7 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-2 bg-info">
+        <div class="col-md-3 main bg-info">
             <table>
                 <tr>
                     <td>Target #/Responses:</td><td id="targetresponses"></td>
@@ -93,13 +92,12 @@
                     <td>Current cost:</td><td id="currentcost"></td>
                 </tr>
                 <tr>
-                    <td>Classification method:</td><td id="classificationmethod"></td>
+                    <td>Class. method:</td><td id="classificationmethod"></td>
                 </tr>
             </table>
         </div>
-        <div class="col-md-8">
-            <table>
-                <tr></tr>
+        <div class="main col-md-9">
+            <table class="table" id="responses">
             </table>
         </div>
     </div>
@@ -107,8 +105,8 @@
     </div>
 <!--<script src="http://getbootstrap.com/assets/js/docs.min.js"></script>-->
 <!-- Latest compiled and minified JavaScript -->
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.string/3.0.3/underscore.string.min.js"></script>
+<script src="dashboard.js"></script>
 </body>
 </html>
