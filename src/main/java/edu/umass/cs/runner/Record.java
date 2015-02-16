@@ -12,10 +12,7 @@ import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import edu.umass.cs.surveyman.utils.Gensym;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.math3.analysis.function.Abs;
-import org.apache.commons.math3.util.MathUtils;
 import org.apache.log4j.Logger;
-import org.eclipse.jetty.util.StringUtil;
 
 import java.io.File;
 import java.io.IOException;
