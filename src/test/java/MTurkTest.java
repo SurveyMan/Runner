@@ -30,12 +30,22 @@ public class MTurkTest extends TestLog {
         }
     }
 
-    public MTurkTest() throws Exception {
+    public MTurkTest()
+            throws Exception
+    {
         super.init(this.getClass());
     }
 
-    private SurveyTasksTuple sendSurvey(int i)
-            throws IOException, SurveyException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, ParseException, InstantiationException {
+    private SurveyTasksTuple sendSurvey(
+            int i)
+            throws IOException,
+                   SurveyException,
+                   NoSuchMethodException,
+                   IllegalAccessException,
+                   InvocationTargetException,
+                   ParseException,
+                   InstantiationException
+    {
         CSVParser parser = new CSVParser(new CSVLexer(testsFiles[i], String.valueOf(separators[i])));
         Survey survey = parser.parse();
         MturkLibrary lib = new MturkLibrary();

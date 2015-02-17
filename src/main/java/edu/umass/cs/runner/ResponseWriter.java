@@ -120,12 +120,12 @@ public class ResponseWriter {
 
         StringBuilder retval = new StringBuilder();
 
-        assert sr.getAllResponses().size() > 0 : "Cannot have 0 responses to a survey!!";
+        //assert sr.getAllResponses().size() > 0 : "Cannot have 0 responses to a survey!!";
 
         for (IQuestionResponse qr : sr.getAllResponses())
             retval.append(outputQuestionResponse(survey, qr, sr));
 
-        assert retval.length() != 0 : "Cannot have a survey response of length 0!!";
+        //assert retval.length() != 0 : "Cannot have a survey response of length 0!!";
 
         return retval.toString();
     }
