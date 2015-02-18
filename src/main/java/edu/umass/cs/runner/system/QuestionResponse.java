@@ -1,6 +1,5 @@
 package edu.umass.cs.runner.system;
 
-import com.google.gson.JsonObject;
 import edu.umass.cs.runner.ResponseWriter;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
 import edu.umass.cs.surveyman.analyses.OptTuple;
@@ -9,6 +8,8 @@ import edu.umass.cs.surveyman.survey.Question;
 import edu.umass.cs.surveyman.survey.StringComponent;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,13 +68,12 @@ public class QuestionResponse implements IQuestionResponse {
     }
 
     public void add(
-            JsonObject response,
+            JSONObject response,
             Survey s,
             Map<String,String> otherValues)
-            throws SurveyException
-    {
+            throws SurveyException, JSONException {
 
-        boolean custom = Question.customQuestion(response.get("quid").getAsString());
+        boolean custom = Question.customQuestion(response.getString("quid"));
 
         if (this.otherValues == null)
             this.otherValues = otherValues;
@@ -82,16 +82,16 @@ public class QuestionResponse implements IQuestionResponse {
 
         if (custom){
             this.q = new Question(new StringComponent("CUSTOM", -1, -1), -1, -1);
-            this.indexSeen = response.get("qpos").getAsInt();
-            this.opts.add(new OptTuple(new StringComponent(response.get("oid").getAsString(), -1, -1), -1));
+            this.indexSeen = response.getInt("qpos");
+            this.opts.add(new OptTuple(new StringComponent(response.getString("oid"), -1, -1), -1));
         } else {
-            this.q = s.getQuestionById(response.get("quid").getAsString());
-            this.indexSeen = response.get("qpos").getAsInt();
+            this.q = s.getQuestionById(response.getString("quid"));
+            this.indexSeen = response.getInt("qpos");
             if (q.freetext) {
                 // do something
             } else {
-                Component c = s.getQuestionById(q.quid).getOptById(response.get("oid").getAsString());
-                int optloc = response.get("opos").getAsInt();
+                Component c = s.getQuestionById(q.quid).getOptById(response.getString("oid"));
+                int optloc = response.getInt("opos");
                 this.opts.add(new OptTuple(c, optloc));
             }
         }

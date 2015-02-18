@@ -3,7 +3,6 @@ package edu.umass.cs.runner.system.generators;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import com.github.fge.jsonschema.exceptions.ProcessingException;
 import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.survey.Component;
@@ -19,8 +18,7 @@ public class JS {
     private static String makeJS(
             Component preview)
             throws SurveyException,
-            IOException,
-            ProcessingException
+            IOException
     {
         String loadPreview;
         if (preview instanceof HTMLComponent)
@@ -48,12 +46,8 @@ public class JS {
             LOGGER.fatal(ex);
             ex.printStackTrace();
             System.exit(-1);
-        } catch (ProcessingException e) {
-            LOGGER.fatal(e);
-            e.printStackTrace();
-            System.exit(-1);
         }
         return js;
         //return new ClosureJavaScriptCompressor().compress(js);
-    };
+    }
 }

@@ -3,8 +3,10 @@ package edu.umass.cs.runner.system;
 import java.io.*;
 import java.util.*;
 
-import com.google.gson.JsonParser;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import edu.umass.cs.runner.Record;
+import edu.umass.cs.runner.system.generators.JS;
 import edu.umass.cs.runner.system.output.AnswerQuad;
 import edu.umass.cs.runner.system.output.AnswerStruct;
 import edu.umass.cs.runner.system.output.SurveyResponseStruct;
@@ -12,6 +14,7 @@ import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
 import edu.umass.cs.surveyman.analyses.ISurveyResponseReader;
 import edu.umass.cs.surveyman.analyses.OptTuple;
+import edu.umass.cs.surveyman.input.json.JSONParser;
 import edu.umass.cs.surveyman.survey.Component;
 import edu.umass.cs.surveyman.survey.Question;
 import edu.umass.cs.surveyman.survey.StringComponent;
@@ -20,6 +23,8 @@ import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import edu.umass.cs.surveyman.utils.Gensym;
 import org.apache.log4j.Logger;
 import org.dom4j.DocumentException;
+import org.eclipse.jetty.util.ajax.JSON;
+import org.json.JSONObject;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvMapReader;
 import org.supercsv.io.ICsvMapReader;
@@ -195,7 +200,7 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
                 String[] optionStuff = opts.split("\\|");
                 for (String optionJSON : optionStuff) {
                     try {
-                        questionResponse.add(new JsonParser().parse(optionJSON).getAsJsonObject(), s, otherValues);
+                        questionResponse.add(new JSONObject(optionJSON), s, otherValues);
                     } catch (Exception ise) {
                         System.err.println(String.format("JSON parse error: %s\nGenerating alternate entry.", ise.getMessage()));
                         // this is a hack

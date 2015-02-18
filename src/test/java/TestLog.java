@@ -1,4 +1,3 @@
-import com.github.fge.jsonschema.library.Library;
 import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.input.exceptions.SyntaxException;
