@@ -1,16 +1,15 @@
 package edu.umass.cs.runner.system.backend.known.localhost;
 
-import edu.umass.cs.runner.system.backend.AbstractLibrary;
-import edu.umass.cs.runner.system.backend.AbstractResponseManager;
+import edu.umass.cs.runner.Runner;
+import edu.umass.cs.runner.system.backend.*;
 import edu.umass.cs.runner.Record;
 import edu.umass.cs.runner.system.BoxedBool;
-import edu.umass.cs.runner.system.backend.ISurveyPoster;
-import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.runner.system.generators.HTML;
 import edu.umass.cs.runner.system.backend.known.localhost.generators.LocalHTML;
 import edu.umass.cs.runner.system.backend.known.localhost.server.WebServerException;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 
+import java.io.File;
 import java.io.IOException;
 
 public class LocalSurveyPoster implements ISurveyPoster {
@@ -55,9 +54,10 @@ public class LocalSurveyPoster implements ISurveyPoster {
     @Override
     public String makeTaskURL(AbstractResponseManager am, ITask task) {
         Record r = task.getRecord();
-        String[] pieces = r.getHtmlFileName().split(AbstractLibrary.fileSep);
         if (Server.serving)
-            return String.format("http://localhost:%d/logs/%s", Server.frontPort, pieces[pieces.length - 1]);
+            return String.format("http://localhost:%d/logs/%s",
+                    Server.frontPort,
+                    new File(r.getHtmlFileName()).getName());
         else return "";
     }
 }

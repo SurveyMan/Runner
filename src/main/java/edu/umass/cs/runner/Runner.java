@@ -54,9 +54,11 @@ public class Runner {
     public static void makeLocalFolder()
     {
         File f = new File(".surveyman");
-        if (!f.exists())
-            assert f.mkdir();
-            LOGGER.info(f.getAbsolutePath());
+        if (!f.exists()) {
+            boolean folder = f.mkdir();
+            assert folder;
+        }
+        LOGGER.info(f.getAbsolutePath());
     }
 
     public static ArgumentParser makeArgParser()
