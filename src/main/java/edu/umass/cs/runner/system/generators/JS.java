@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import com.github.fge.jsonschema.exceptions.ProcessingException;
-//import com.googlecode.htmlcompressor.compressor.ClosureJavaScriptCompressor;
 import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.survey.Component;
