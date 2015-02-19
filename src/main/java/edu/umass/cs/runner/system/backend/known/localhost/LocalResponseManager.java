@@ -19,10 +19,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.dom4j.DocumentException;
 import org.json.JSONException;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import edu.umass.cs.runner.system.backend.AbstractResponseManager;
 import org.xml.sax.SAXException;
 import edu.umass.cs.runner.Record;
@@ -43,7 +39,6 @@ public class LocalResponseManager extends AbstractResponseManager {
     public List<Server.IdResponseTuple> getNewAnswers()
             throws IOException,
             URISyntaxException,
-            ParseException,
             JSONException
     {
         String responseBody = getRequest();
