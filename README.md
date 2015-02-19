@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/SurveyMan/Runner.png?branch=master)](https://travis-ci.org/etosch/Runner)
+[![Build Status](https://travis-ci.org/SurveyMan/Runner.png?branch=master)](https://travis-ci.org/SurveyMan/Runner)
 # Usage
 
 SurveyMan is a programming language and runtime system for designing, debugging, and deploying surveys on the web. You
