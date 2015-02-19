@@ -18,7 +18,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.dom4j.DocumentException;
-import org.json.JSONException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import edu.umass.cs.runner.system.backend.AbstractResponseManager;
 import org.xml.sax.SAXException;
 import edu.umass.cs.runner.Record;
@@ -38,16 +39,14 @@ public class LocalResponseManager extends AbstractResponseManager {
 
     public List<Server.IdResponseTuple> getNewAnswers()
             throws IOException,
-            URISyntaxException,
-            JSONException
+            URISyntaxException
     {
         String responseBody = getRequest();
         ArrayList<Server.IdResponseTuple> responseTuples = new ArrayList<Server.IdResponseTuple>();
         if (responseBody==null || responseBody.trim().equals("") || responseBody.startsWith("<"))
             return responseTuples;
-        JSONParser parser = new JSONParser();
-        JSONArray array = (JSONArray) parser.parse(responseBody);
-        for (int i = 0 ; i < array.size() ; i++){
+        JSONArray array = new JSONArray(responseBody);
+        for (int i = 0 ; i < array.length() ; i++){
             JSONObject obj = (JSONObject) array.get(i);
             String workerId = (String) obj.get("workerid");
             String xml = (String) obj.get("answer");
@@ -139,10 +138,6 @@ public class LocalResponseManager extends AbstractResponseManager {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
             e.printStackTrace();
         }
         if (validResponsesToAdd>0 || botResponsesToAdd>0)
