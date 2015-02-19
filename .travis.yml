@@ -4,4 +4,4 @@ jdk:
     - openjdk6
     - openjdk7
     - oraclejdk8
-script: make test_travis
+script: chmod +x scripts/setup.sh && ./scripts/setup.sh && make test_travis
