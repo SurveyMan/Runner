@@ -1,23 +1,21 @@
 (ns testLog
-    (:gen-class)
-    (:import (util Slurpie)
-             (survey Survey)
-             (system.localhost Server LocalLibrary)
-             (interstitial Library Record BackendType)
-             [edu.umass.cs.runner Record Library]
-             [edu.umass.cs.runner.system.backend Library AbstractLibrary AbstractLibrary])
-    (:import (org.apache.log4j Logger FileAppender PatternLayout)
-             (java.util.regex Pattern)
-             (qc RandomRespondent RandomRespondent$AdversaryType Metrics)
-             (input.csv CSVParser CSVLexer))
-    (:require [clojure.string :as s]
-              [qc.metrics]
-              [qc.response-util]))
-
+  (:gen-class)
+  (:import
+    (edu.umass.cs.runner Record)
+    (edu.umass.cs.runner.system.backend KnownBackendType AbstractLibrary)
+    (edu.umass.cs.runner.system.backend.known.localhost LocalLibrary Server)
+    (edu.umass.cs.surveyman.input.csv CSVParser CSVLexer)
+    (edu.umass.cs.surveyman.qc RandomRespondent QCMetrics)
+    (edu.umass.cs.surveyman.survey Survey Question Component)
+    (edu.umass.cs.surveyman.utils Slurpie)
+    (org.apache.log4j Logger FileAppender PatternLayout)
+           (java.util.regex Pattern))
+  (:require [clojure.string :as s]
+            [edu.umass.cs.runner.utils.response-util :as response-util])
+  )
 
 (def numResponses 250)
 (def alpha 0.05)
-(def qcMetrics (Metrics.))
 (def response-lookup (atom {}))
 (def numQ (atom 1))
 (def DUMMY_ID "dummy")
@@ -25,15 +23,17 @@
 (def SUBMIT_PREFIX "submit_")
 (def NEXT_PREFIX "next_")
 (def MTURK_FORM "mturk_form")
-(def ^BackendType bt BackendType/LOCALHOST)
-(def ^Library lib (LocalLibrary. ""))
+(def ^KnownBackendType bt KnownBackendType/LOCALHOST)
+(def ^AbstractLibrary lib (LocalLibrary. ""))
+(def prefix "src/test/resources/data/samples/")
+
 
 
 (defn generateNRandomResponses
   [survey]
   (try
     (map (fn [^RandomRespondent rr] (.response rr))
-         (qc.response-util/get-random-survey-responses survey numResponses))
+         (response-util/get-random-survey-responses survey numResponses))
     (catch Exception e (do (println (format "Error in %s" (.source survey)))
                             (.printStackTrace e)))
     )
@@ -60,7 +60,7 @@
     [^Record record]
     (-> record
         (.getHtmlFileName)
-        (.split (Library/fileSep))
+        (.split (AbstractLibrary/fileSep))
         (->> (last) (format "http://localhost:%d/logs/%s" Server/frontPort))))
 
 (def tests

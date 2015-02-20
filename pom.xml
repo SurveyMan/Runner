@@ -40,7 +40,7 @@
             <id>travis</id>
             <properties>
                 <exclude.tests>
-                    MTurkTest.java
+                    edu/umass/cs/runner/MTurkTest.java
                 </exclude.tests>
             </properties>
         </profile>
@@ -72,7 +72,7 @@
         <dependency>
             <groupId>edu.umass.cs</groupId>
             <artifactId>surveyman</artifactId>
-            <version>1.6</version>
+            <version>1.6.1</version>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
@@ -99,11 +99,6 @@
             <artifactId>junit</artifactId>
             <version>4.8.1</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.argparse4j</groupId>
-            <artifactId>argparse4j</artifactId>
-            <version>0.4.3</version>
         </dependency>
         <dependency>
             <groupId>net.sourceforge.argparse4j</groupId>

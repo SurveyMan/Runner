@@ -1,19 +1,14 @@
 (ns testAnalyses
-  (:import (interstitial IQuestionResponse ISurveyResponse OptTuple)
-           (qc IQCMetrics))
-  (:import (qc RandomRespondent RandomRespondent$AdversaryType)
-           (input.csv CSVLexer CSVParser)
-           (survey Survey Question Component)
-           (org.apache.log4j Logger))
+  (:import [edu.umass.cs.surveyman.analyses AbstractSurveyResponse IQuestionResponse OptTuple]
+           [edu.umass.cs.surveyman.qc QCMetrics])
   (:use clojure.test)
-  (:use testLog)
-  (:require (qc analyses response-util))
+  (:use edu.umass.cs.runner.testLog)
   )
 
 (deftest test-random-responses
   (println 'test-random-responses)
   (doseq [responses (vals @response-lookup)]
-    (doseq [^ISurveyResponse response responses]
+    (doseq [^AbstractSurveyResponse response responses]
       (doseq [^IQuestionResponse qr (.getResponses response)]
         (doseq [^OptTuple optTupe (.getOpts qr)]
           (when-not (or (.isEmpty (.c optTupe))
@@ -32,7 +27,7 @@
 (deftest test-answer-map
   (println 'test-answer-map)
   (doseq [responses (vals @response-lookup)]
-    (let [ansMap (qc.response-util/make-ans-map responses)]
+    (let [ansMap (response-util/make-ans-map responses)]
       (doseq [k (keys ansMap)]
         (when-not (.freetext k)
           (doseq [^qc.response-util/Response r (ansMap k)]
@@ -67,7 +62,7 @@
   (println 'test-max-entropy)
   (doseq [[survey responses] (seq @response-lookup)]
     (println (.sourceName survey))
-    (is (>= (.getMaxPossibleEntropy ^IQCMetrics qcMetrics survey)
-            (.surveyEntropy ^IQCMetrics qcMetrics survey responses)))
+    (is (>= (QCMetrics/getMaxPossibleEntropy survey)
+            (QCMetrics/surveyEntropy survey responses)))
       )
   )

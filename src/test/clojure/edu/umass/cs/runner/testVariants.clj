@@ -1,15 +1,13 @@
 (ns testVariants
-  (:import (util Printer))
   (:use clojure.test)
-  (:use testLog)
-  (:require (qc analyses))
+  (:use edu.umass.cs.runner.testLog)
   )
 
 (let [falseBias (atom 0)
       totalTested (atom 0)]
   (deftest test-variantBias
     ;; we only have one survey with variants right now
-    (let [[survey responses] (get-survey-and-responses-by-filename "data/samples/prototypicality.csv")]
+    (let [[survey responses] (get-survey-and-responses-by-filename (str prefix "prototypicality.csv"))]
       (let [variantsList (flatten (qc.analyses/wordingBias responses survey))]
         (doseq [variants variantsList]
           (let [{[q1 ct1] :q1&ct [q2 ct2] :q2&ct {stat :stat val :val} :bias} variants]
