@@ -9,7 +9,7 @@ clean:
 	rm -rf lib
 	mvn clean
 
-compile: deps clean
+compile: deps 
 	mvn compile -DskipTests
 
 test: compile
