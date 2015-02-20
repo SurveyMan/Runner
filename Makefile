@@ -8,12 +8,12 @@ clean:
 	mvn clean
 
 compile: clean
-	mvn compile
+	mvn compile -DskipTests
 
 test: compile
 	mvn test
 
-test_travis : compile deps
+test_travis : deps compile
 	mvn -Ptravis test
 
 package: compile
