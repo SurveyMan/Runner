@@ -4,4 +4,5 @@ jdk:
     - openjdk6
     - openjdk7
     - oraclejdk8
-script: scripts/setup.sh && make test_travis
+before_install: scripts/setup.sh
+script: make test_travis
