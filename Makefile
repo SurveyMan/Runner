@@ -1,7 +1,7 @@
 SHELL:=/bin/bash
 mvnargs := -Dpackaging=jar -DgroupId=com.amazonaws -Dversion=1.6.2
 
-.PHONY := clean compile test test_travis package
+.PHONY := clean compile test test_travis package deps
 
 clean:
 	mvn clean
@@ -12,7 +12,7 @@ compile: clean
 test: compile
 	mvn test
 
-test_travis : compile
+test_travis : compile deps
 	mvn -Ptravis test
 
 package: compile
