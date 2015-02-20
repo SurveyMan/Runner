@@ -198,8 +198,8 @@
                 <configuration>
                     <programs>
                         <program>
-                            <mainClass>system.Runner</mainClass>
-                            <name>surveyman</name>
+                            <mainClass>edu.umass.cs.runner.Runner</mainClass>
+                            <name>runner</name>
                         </program>
                     </programs>
                     <repositoryName>lib</repositoryName>
