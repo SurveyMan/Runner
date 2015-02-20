@@ -5,15 +5,17 @@ projectdir := $(shell pwd)
 .PHONY := clean compile test test_travis package deps
 
 clean:
+	rm -rf ~/surveyman/.metadata
+	rm -rf lib
 	mvn clean
 
-compile: clean
+compile: deps clean
 	mvn compile -DskipTests
 
 test: compile
 	mvn test
 
-test_travis : deps compile
+test_travis : compile
 	mvn -Ptravis test
 
 package: compile
