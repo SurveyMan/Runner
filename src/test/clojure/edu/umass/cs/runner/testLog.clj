@@ -1,4 +1,4 @@
-(ns testLog
+(ns edu.umass.cs.runner.testLog
   (:gen-class)
   (:import
     (edu.umass.cs.runner Record)
@@ -79,7 +79,7 @@
 
 (pmap (fn [[filename sep outcome]]
         (try
-          (let [^Survey survey (makeSurvey filename sep)
+          (let [^Survey survey (makeSurvey (str "src/test/resources/" filename) sep)
                 responses (generateNRandomResponses survey)]
             (when-not (read-string outcome)
               (println "Unexpected success for file " filename)

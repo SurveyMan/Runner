@@ -1,4 +1,5 @@
-(ns testVariants
+(ns edu.umass.cs.runner.testVariants
+  (:import [edu.umass.cs.surveyman.qc QCMetrics])
   (:use clojure.test)
   (:use edu.umass.cs.runner.testLog)
   )
@@ -8,7 +9,7 @@
   (deftest test-variantBias
     ;; we only have one survey with variants right now
     (let [[survey responses] (get-survey-and-responses-by-filename (str prefix "prototypicality.csv"))]
-      (let [variantsList (flatten (qc.analyses/wordingBias responses survey))]
+      (let [variantsList (flatten (QCMetrics/calculateWordingBiases responses survey))]
         (doseq [variants variantsList]
           (let [{[q1 ct1] :q1&ct [q2 ct2] :q2&ct {stat :stat val :val} :bias} variants]
             (when (and val (< (val :p-value) alpha))

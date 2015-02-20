@@ -1,13 +1,12 @@
- (ns testCheckbox
-     (:import (survey Survey Question Component)
-              (interstitial Record BoxedBool AbstractResponseManager ISurveyResponse IQuestionResponse OptTuple)
-              (system.localhost LocalLibrary Server)
-              (system Runner)
-              (system.generators HTML)
-              (system.localhost.generators LocalHTML)
-              (util Slurpie)
-              [edu.umass.cs.runner Runner Record]
-              [edu.umass.cs.runner.system BoxedBool])
+ (ns edu.umass.cs.runner.testCheckbox
+     (:import (edu.umass.cs.runner Record)
+              (edu.umass.cs.runner.system BoxedBool)
+              [edu.umass.cs.surveyman.survey Survey Question Component]
+              [edu.umass.cs.runner.system.backend AbstractResponseManager]
+              [edu.umass.cs.runner.system.generators HTML]
+              [edu.umass.cs.runner.utils Slurpie]
+              [edu.umass.cs.runner.system.backend.known.localhost Server]
+              [edu.umass.cs.surveyman.analyses AbstractSurveyResponse IQuestionResponse])
      (:use testLog)
      (:use clojure.test)
      (:use clj-webdriver.taxi)
@@ -60,7 +59,7 @@
                 (while (empty? (.validResponses record))
                     (Thread/sleep 1000)
                     )
-                (let [^ISurveyResponse response (first (.validResponses record))
+                (let [^AbstractSurveyResponse response (first (.validResponses record))
                       ^IQuestionResponse ans (first (vals (.resultsAsMap response)))]
                     (println "checking responses...")
                     (doseq [^Component c (map #(.c ^OptTuple %) (.getOpts ans))]

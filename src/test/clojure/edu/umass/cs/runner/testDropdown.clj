@@ -1,14 +1,13 @@
- (ns testDropdown
-     (:import (survey Survey Question Component)
-              (interstitial Record BoxedBool AbstractResponseManager ISurveyResponse OptTuple IQuestionResponse)
-              (system.localhost LocalLibrary Server)
-              (system Runner)
-              (util Slurpie)
-              (system.localhost.generators LocalHTML)
-              (system.generators HTML)
-              [edu.umass.cs.runner Runner Record]
-              [edu.umass.cs.runner.system BoxedBool])
-     (:use testLog)
+ (ns edu.umass.cs.runner.testDropdown
+   (:import (edu.umass.cs.runner Record BoxedBool AbstractResponseManager ISurveyResponse OptTuple IQuestionResponse)
+            (edu.umass.cs.surveyman.survey Survey Question Component)
+            (edu.umass.cs.surveyman.util Slurpie)
+            (edu.umass.cs.runner.system Runner)
+            (edu.umass.cs.runner.system.backend.known.localhost LocalLibrary Server)
+            (edu.umass.cs.runner.system.generators HTML)
+            (edu.umass.cs.runner.system.localhost.generators LocalHTML)
+            )
+     (:use edu.umass.cs.runner.testLog)
      (:use clojure.test)
      (:use clj-webdriver.taxi))
 

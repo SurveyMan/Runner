@@ -2,6 +2,8 @@ package edu.umass.cs.runner;
 
 import com.amazonaws.mturk.service.exception.AccessKeyException;
 import edu.umass.cs.runner.system.backend.AbstractResponseManager;
+import edu.umass.cs.runner.system.backend.ISurveyPoster;
+import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.runner.system.backend.KnownBackendType;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkLibrary;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkResponseManager;
@@ -13,9 +15,6 @@ import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import edu.umass.cs.runner.Record;
-import edu.umass.cs.runner.system.backend.ISurveyPoster;
-import edu.umass.cs.runner.system.backend.ITask;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
