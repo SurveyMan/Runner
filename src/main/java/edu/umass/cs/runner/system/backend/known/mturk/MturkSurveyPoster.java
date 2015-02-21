@@ -17,6 +17,7 @@ import java.util.*;
 public class MturkSurveyPoster implements ISurveyPoster {
 
     private boolean firstPost = true;
+    private boolean urlnotLogged = true;
 
     public MturkSurveyPoster(){
         super();
@@ -27,14 +28,23 @@ public class MturkSurveyPoster implements ISurveyPoster {
     }
 
     @Override
-    public String makeTaskURL(AbstractResponseManager responseManager, ITask mturkTask) {
+    public String makeTaskURL(
+            AbstractResponseManager responseManager,
+            ITask mturkTask)
+    {
         HIT hit = ((MturkTask) mturkTask).hit;
         String url = ((MturkResponseManager) responseManager).getWebsiteURL()+"/mturk/preview?groupId="+hit.getHITTypeId();
-        Runner.LOGGER.info(url);
+        if (urlnotLogged) {
+            Runner.LOGGER.info(url);
+            urlnotLogged = false;
+        }
         return url;
     }
 
-    private ITask postNewSurvey(MturkResponseManager responseManager, Record record) throws SurveyException {
+    private ITask postNewSurvey(
+            MturkResponseManager responseManager,
+            Record record)
+            throws SurveyException {
         Properties props = record.library.props;
         int numToBatch = Integer.parseInt(record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
         long lifetime = Long.parseLong(props.getProperty(Parameters.HIT_LIFETIME));
@@ -59,14 +69,18 @@ public class MturkSurveyPoster implements ISurveyPoster {
         return null;
     }
 
-    private ITask extendThisSurvey(AbstractResponseManager rm, Record record) throws SurveyException {
+    private ITask extendThisSurvey(
+            AbstractResponseManager rm,
+            Record record)
+            throws SurveyException
+    {
         ITask rettask = null;
         int desiredResponses = Integer.parseInt(record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
         int okay = 0;
         for (ITask task : record.getAllTasks()) {
             ((MturkResponseManager) rm).renewIfExpired(task.getTaskId(), record.survey);
             okay += ((MturkResponseManager) rm).numAvailableAssignments(task);
-            okay += record.validResponses.size();
+            okay += record.getNumValidResponses();
             if(desiredResponses - okay > 0)
                 rettask = (((MturkResponseManager) rm).addAssignments(task, desiredResponses - okay));
         }

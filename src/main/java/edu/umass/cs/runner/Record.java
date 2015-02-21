@@ -30,8 +30,8 @@ public class Record {
     final public boolean smoothing;
     final public double alpha;
     final public String rid = gensym.next();
-    public List<AbstractSurveyResponse> validResponses;
-    public List<AbstractSurveyResponse> botResponses;
+    private List<AbstractSurveyResponse> validResponses;
+    private List<AbstractSurveyResponse> botResponses;
     private Deque<ITask> tasks; // these should be hitids
     private String htmlFileName = "";
     public KnownBackendType backendType;
@@ -166,5 +166,40 @@ public class Record {
         return false;
     }
 
+    public synchronized int getNumValidResponses() {
+        return this.validResponses.size();
+    }
+
+    public synchronized int getNumBotResponses() {
+        return this.botResponses.size();
+    }
+
+    public synchronized void addBotResponse(
+            AbstractSurveyResponse surveyResponse)
+    {
+        this.botResponses.add(surveyResponse);
+    }
+
+    public synchronized void addValidResponse(
+            AbstractSurveyResponse surveyResponse)
+    {
+        this.validResponses.add(surveyResponse);
+    }
+
+    public synchronized void removeBotResponse(
+            AbstractSurveyResponse surveyResponse)
+    {
+        if (this.botResponses.contains(surveyResponse)) {
+            this.botResponses.remove(surveyResponse);
+        }
+    }
+
+    public synchronized void removeValidResponse(
+            AbstractSurveyResponse surveyResponse)
+    {
+        if (this.validResponses.contains(surveyResponse)) {
+            this.botResponses.remove(surveyResponse);
+        }
+    }
 }
 

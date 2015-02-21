@@ -29,7 +29,7 @@ public class MturkLibrary extends AbstractLibrary {
         init();
         this.props = properties;
         Runner.LOGGER.info("Updated properties to " + properties.toString());
-        this.props.setProperty("reward", Double.toString(Runner.getBasePay));
+        this.props.setProperty("reward", Double.toString(Runner.basePay));
     }
 
     public MturkLibrary(String propertiesURL, String configURL){
@@ -69,6 +69,7 @@ public class MturkLibrary extends AbstractLibrary {
 
         boolean sandbox = ! this.props.containsKey(Parameters.SANDBOX) ||
                 Boolean.parseBoolean(this.props.getProperty(Parameters.SANDBOX));
+
 
         if (sandbox) {
             MTURK_URL = MTURK_SANDBOX_URL;

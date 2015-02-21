@@ -17,7 +17,6 @@ import edu.umass.cs.runner.system.backend.known.mturk.MturkLibrary;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkResponseManager;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkSurveyPoster;
 import edu.umass.cs.runner.utils.ArgReader;
-import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
 import edu.umass.cs.surveyman.qc.Classifier;
@@ -49,7 +48,9 @@ public class Runner {
     public static ISurveyPoster surveyPoster;
     public static AbstractLibrary library;
     public static final BoxedBool interrupt = new BoxedBool();
-    public static final double getBasePay = 7.25;
+    public static final double basePay = 7.25;
+    public static double alpha = 0.05;
+    public static boolean smoothing = false;
 
     public static void makeLocalFolder()
     {
@@ -144,8 +145,8 @@ public class Runner {
 
         msg = String.format("Polling for responses for Tasks at %s (%d total; %d valid)"
                 , hiturl
-                , record.validResponses.size()+record.botResponses.size()
-                , record.botResponses.size());
+                , record.getNumValidResponses()+record.getNumBotResponses()
+                , record.getNumValidResponses());
 
         if (System.currentTimeMillis() - timeSinceLastNotice > 90000) {
             System.out.println(msg);
@@ -211,9 +212,9 @@ public class Runner {
             InstantiationException
     {
         Record record = AbstractResponseManager.getRecord(survey);
-        if (record==null) return false;
-        boolean done = record.validResponses.size() >= Integer.parseInt(record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
-        return ! done;
+        return record!=null &&
+                record.getNumValidResponses() < Integer.parseInt(
+                record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
     }
 
     public static void writeResponses(
@@ -263,6 +264,7 @@ public class Runner {
             @Override
             public void run(){
                 Record record = null;
+                int numTimesCalled = 0;
                 do {
                     try {
                         record = AbstractResponseManager.getRecord(survey);
@@ -289,7 +291,9 @@ public class Runner {
         };
     }
 
-    public static void dashboardDump(Namespace ns){
+    public static void dashboardDump(
+            Namespace ns)
+    {
         try {
             FileWriter out = new FileWriter(CURRENT_DASHBOARD_DATA);
             List<String> strings = new ArrayList<String>();
@@ -318,7 +322,13 @@ public class Runner {
     {
         try {
             Survey survey = record.survey;
+            int numTimesCalled = 0;
             do {
+                // Log every 5 times this thing is called:
+                if (numTimesCalled % 5 == 0) {
+                    LOGGER.info("Runner Thread");
+                    numTimesCalled++;
+                }
                 if (!interrupt.getInterrupt()) {
                     surveyPoster.postSurvey(responseManager, record);
                 }
@@ -400,6 +410,8 @@ public class Runner {
             double alpha = Double.valueOf((String) ns.get("alpha"));
             final Record record = new Record(survey, library, classifier, smoothing, alpha, backendType);
             AbstractResponseManager.putRecord(survey, record);
+            Runner.alpha = alpha;
+            Runner.smoothing = smoothing;
             // now we're ready to go
             Thread writer = makeWriter(survey);
             Thread responder = makeResponseGetter(survey);

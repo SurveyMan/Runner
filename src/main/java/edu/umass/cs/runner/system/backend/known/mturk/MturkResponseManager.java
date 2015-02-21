@@ -264,7 +264,7 @@ public class MturkResponseManager extends AbstractResponseManager {
             throws ParseException,
             SurveyException
     {
-        Runner.LOGGER.info(getWebsiteURL());
+        Runner.LOGGER.info("WebsiteURL:\t"+getWebsiteURL());
         System.out.println(getWebsiteURL());
         String name = "createHIT";
         int waittime = 1;
@@ -287,7 +287,9 @@ public class MturkResponseManager extends AbstractResponseManager {
                         );
                     return hitid.getHITId();
                 } catch (InternalServiceException ise) {
-                    LOGGER.info(MessageFormat.format("{0} {1}", name, ise));
+                    String info = MessageFormat.format("{0} {1}", name, ise);
+                    LOGGER.info(info);
+                    System.out.println(info);
                     if (overTime(name, waittime)) {
                       throw new CreateHITException(title);
                     }
@@ -395,16 +397,13 @@ public class MturkResponseManager extends AbstractResponseManager {
             throws SurveyException
     {
         boolean success = false;
-        Record r = null;
+        Record record = null;
         try {
-            r = AbstractResponseManager.getRecord(survey);
+            record = AbstractResponseManager.getRecord(survey);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if (r == null) return -1;
-        // references to things in the record
-        List<AbstractSurveyResponse> validResponses = r.validResponses;
-        List<AbstractSurveyResponse> botResponses = r.botResponses;
+        if (record == null) return -1;
         // local vars
         SimpleDateFormat format = new SimpleDateFormat(SurveyResponse.dateFormat);
         int validResponsesToAdd = 0, botResponsesToAdd = 0;
@@ -413,26 +412,36 @@ public class MturkResponseManager extends AbstractResponseManager {
             HIT hit = ((MturkTask) task).hit;
             List<Assignment> assignments = getAllAssignmentsForHIT(hit);
             for (Assignment a : assignments) {
-                if (a.getAssignmentStatus().equals(AssignmentStatus.Submitted)) {
-                    Map<String, String> otherValues = new HashMap<String, String>();
-                    otherValues.put("acceptTime", String.format("\"%s\"", format.format(a.getAcceptTime().getTime())));
-                    otherValues.put("submitTime", String.format("\"%s\"", format.format(a.getSubmitTime().getTime())));
-                    SurveyResponse sr = parseResponse(a.getWorkerId(), a.getAnswer(),survey,r, otherValues);
-                    if (QCMetrics.entropyClassification(survey, sr, validResponses, false, 0.05)){
-                        botResponses.add(sr);
-                        botResponsesToAdd++;
-                    } else {
-                        validResponses.add(sr);
-                        validResponsesToAdd++;
+                synchronized (record) {
+                    if (a.getAssignmentStatus().equals(AssignmentStatus.Submitted)) {
+                        Map<String, String> otherValues = new HashMap<String, String>();
+                        otherValues.put("acceptTime", String.format("\"%s\"", format.format(a.getAcceptTime().getTime())));
+                        otherValues.put("submitTime", String.format("\"%s\"", format.format(a.getSubmitTime().getTime())));
+                        SurveyResponse sr = parseResponse(a.getWorkerId(), a.getAnswer(), survey, record, otherValues);
+                        if (QCMetrics.entropyClassification(
+                                survey,
+                                sr,
+                                new ArrayList<AbstractSurveyResponse>(record.getAllResponses()),
+                                false,
+                                0.05))
+                        {
+                            record.addBotResponse(sr);
+                            record.removeValidResponse(sr);
+                            botResponsesToAdd++;
+                        } else {
+                            record.addValidResponse(sr);
+                            record.removeBotResponse(sr);
+                            validResponsesToAdd++;
+                        }
+                        approveAssignment(a.getAssignmentId());
                     }
-                    approveAssignment(a.getAssignmentId());
                 }
             }
             success=true;
         }
         if (validResponsesToAdd>0 || botResponsesToAdd> 0)
             LOGGER.info(String.format("%d responses total. %d valid responses added. %d invalid responses added."
-                    , r.validResponses.size() + r.botResponses.size(), validResponsesToAdd, botResponsesToAdd));
+                    , record.getNumValidResponses()+record.getNumBotResponses(), validResponsesToAdd, botResponsesToAdd));
         return validResponsesToAdd;
     }
 }

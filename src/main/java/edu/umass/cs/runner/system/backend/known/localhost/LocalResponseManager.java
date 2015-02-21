@@ -65,20 +65,18 @@ public class LocalResponseManager extends AbstractResponseManager {
         HttpHost host = new HttpHost("localhost", Server.frontPort, Protocol.getProtocol("http"));
         HttpGet request = new HttpGet(host.toURI().concat("/" + Server.RESPONSES));
         ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
-            public String handleResponse(final HttpResponse response) throws ClientProtocolException, IOException {
+            public String handleResponse(final HttpResponse response) throws IOException {
                 int status = response.getStatusLine().getStatusCode();
                 if (status >= 200 && status < 300) {
                     HttpEntity entity = response.getEntity();
                     return entity != null ? EntityUtils.toString(entity) : null;
-                } else {
-                    throw new ClientProtocolException("Unexpected response status: " + status);
-                }
+                } else throw new ClientProtocolException("Unexpected response status: " + status);
             }
         };
         String responseBody = null;
         try {
             responseBody = httpclient.execute(request, responseHandler);
-        } catch (IOException e) { }
+        } catch (IOException e) { Runner.LOGGER.warn(e); }
 
         return responseBody;
     }
@@ -102,7 +100,7 @@ public class LocalResponseManager extends AbstractResponseManager {
             for (Server.IdResponseTuple tupe : tuples) {
                 SurveyResponse sr = parseResponse(tupe.id, tupe.xml, survey, r, null);
                 assert sr!=null;
-                boolean valid = false;
+                boolean valid;
                 switch (r.classifier) {
                     case ENTROPY:
                         valid = QCMetrics.entropyClassification(
@@ -126,12 +124,12 @@ public class LocalResponseManager extends AbstractResponseManager {
                         throw new RuntimeException("Unknown classification metric: " + r.classifier.name());
                 }
                 if (valid) {
-                    r.validResponses.add(sr);
-                    r.botResponses.remove(sr);
+                    r.addValidResponse(sr);
+                    r.removeBotResponse(sr);
                     validResponsesToAdd++;
                 } else {
-                    r.validResponses.remove(sr);
-                    r.botResponses.add(sr);
+                    r.addValidResponse(sr);
+                    r.removeBotResponse(sr);
                     botResponsesToAdd++;
                 }
             }
@@ -142,7 +140,7 @@ public class LocalResponseManager extends AbstractResponseManager {
         }
         if (validResponsesToAdd>0 || botResponsesToAdd>0)
             Runner.LOGGER.info(String.format("%d responses total. %d valid responses added. %d invalid responses added."
-                    , r.validResponses.size() + r.botResponses.size(), validResponsesToAdd, botResponsesToAdd));
+                    , r.getNumValidResponses() + r.getNumBotResponses(), validResponsesToAdd, botResponsesToAdd));
         return validResponsesToAdd;
     }
 
