@@ -44,7 +44,8 @@ public class MturkSurveyPoster implements ISurveyPoster {
     private ITask postNewSurvey(
             MturkResponseManager responseManager,
             Record record)
-            throws SurveyException {
+            throws SurveyException
+    {
         Properties props = record.library.props;
         int numToBatch = Integer.parseInt(record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
         long lifetime = Long.parseLong(props.getProperty(Parameters.HIT_LIFETIME));

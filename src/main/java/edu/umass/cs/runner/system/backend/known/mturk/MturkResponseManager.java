@@ -18,7 +18,7 @@ import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.qc.QCMetrics;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.dom4j.DocumentException;
 import org.xml.sax.SAXException;
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
-    private static final Logger LOGGER = Logger.getLogger("SurveyMan");
+    private static final Logger LOGGER = Runner.LOGGER;
     protected final PropertiesClientConfig config;
     protected final RequesterService service;
     final protected static long maxAutoApproveDelay = 2592000l;
@@ -391,6 +391,33 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
+    private boolean isValid(
+            AbstractSurveyResponse surveyResponse,
+            Record record)
+            throws SurveyException
+    {
+        switch (record.classifier) {
+            case LOG_LIKELIHOOD:
+                return QCMetrics.logLikelihoodClassification(
+                        record.survey,
+                        surveyResponse,
+                        new ArrayList<AbstractSurveyResponse>(record.getAllResponses()),
+                        record.smoothing,
+                        record.alpha
+                );
+            case ENTROPY:
+                return QCMetrics.entropyClassification(
+                        record.survey,
+                        surveyResponse,
+                        new ArrayList<AbstractSurveyResponse>(record.getAllResponses()),
+                        record.smoothing,
+                        record.alpha
+                );
+            default:
+                throw new RuntimeException("Unknown classifier: "+record.classifier);
+        }
+    }
+
     public int addResponses(
             Survey survey,
             ITask task)
@@ -418,20 +445,17 @@ public class MturkResponseManager extends AbstractResponseManager {
                         otherValues.put("acceptTime", String.format("\"%s\"", format.format(a.getAcceptTime().getTime())));
                         otherValues.put("submitTime", String.format("\"%s\"", format.format(a.getSubmitTime().getTime())));
                         SurveyResponse sr = parseResponse(a.getWorkerId(), a.getAnswer(), survey, record, otherValues);
-                        if (QCMetrics.entropyClassification(
-                                survey,
-                                sr,
-                                new ArrayList<AbstractSurveyResponse>(record.getAllResponses()),
-                                false,
-                                0.05))
-                        {
-                            record.addBotResponse(sr);
-                            record.removeValidResponse(sr);
-                            botResponsesToAdd++;
-                        } else {
+                        boolean valid = isValid(sr, record);
+                        LOGGER.debug(String.format("Response %s valid: %b", sr.getSrid(), valid));
+                        assert valid == (sr.getScore() > sr.getThreshold());
+                        if (valid) {
                             record.addValidResponse(sr);
                             record.removeBotResponse(sr);
                             validResponsesToAdd++;
+                        } else {
+                            record.addBotResponse(sr);
+                            record.removeValidResponse(sr);
+                            botResponsesToAdd++;
                         }
                         approveAssignment(a.getAssignmentId());
                     }

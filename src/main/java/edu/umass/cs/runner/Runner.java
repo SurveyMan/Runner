@@ -141,6 +141,7 @@ public class Runner {
         for (ITask hit : record.getAllTasks()) {
             hiturl = surveyPoster.makeTaskURL(responseManager, hit);
             responsesAdded = responseManager.addResponses(survey, hit);
+            LOGGER.debug(String.format("Added %d responses", responsesAdded));
         }
 
         msg = String.format("Polling for responses for Tasks at %s (%d total; %d valid)"
@@ -148,7 +149,7 @@ public class Runner {
                 , record.getNumValidResponses()+record.getNumBotResponses()
                 , record.getNumValidResponses());
 
-        if (System.currentTimeMillis() - timeSinceLastNotice > 90000) {
+        if (System.currentTimeMillis() - timeSinceLastNotice > 1000000) {
             System.out.println(msg);
             LOGGER.info(msg);
             timeSinceLastNotice = System.currentTimeMillis();
@@ -212,6 +213,7 @@ public class Runner {
             InstantiationException
     {
         Record record = AbstractResponseManager.getRecord(survey);
+        assert record.getNumBotResponses() + record.getNumValidResponses() == record.getAllResponses().size();
         return record!=null &&
                 record.getNumValidResponses() < Integer.parseInt(
                 record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
@@ -326,7 +328,7 @@ public class Runner {
             do {
                 // Log every 5 times this thing is called:
                 if (numTimesCalled % 5 == 0) {
-                    LOGGER.info("Runner Thread");
+                    LOGGER.info(String.format("Runner Thread called %d times.", numTimesCalled));
                     numTimesCalled++;
                 }
                 if (!interrupt.getInterrupt()) {
