@@ -73,6 +73,7 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
             throws SurveyException, DocumentException, IOException, SAXException, ParserConfigurationException {
         this.workerId = workerId;
         this.record = record;
+        this.otherValues.putAll(ov);
         this.setResponses(parse(s, xmlAns, ov));
     }
 

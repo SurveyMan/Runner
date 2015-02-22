@@ -105,7 +105,7 @@ public class ResponseWriter {
                 List<String> keys = new ArrayList<String>(backendHeaders.keySet());
                 Collections.sort(keys);
                 for (String key : keys) {
-                    retval.append(String.format("\"%s\",%s", sep, backendHeaders.get(key)));
+                    retval.append(String.format("%s\"%s\"", sep, backendHeaders.get(key)));
                 }
             }
 

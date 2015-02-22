@@ -442,12 +442,13 @@ public class MturkResponseManager extends AbstractResponseManager {
                 synchronized (record) {
                     if (a.getAssignmentStatus().equals(AssignmentStatus.Submitted)) {
                         Map<String, String> otherValues = new HashMap<String, String>();
-                        otherValues.put("acceptTime", String.format("\"%s\"", format.format(a.getAcceptTime().getTime())));
-                        otherValues.put("submitTime", String.format("\"%s\"", format.format(a.getSubmitTime().getTime())));
+                        otherValues.put("acceptTime", String.format("%s", format.format(a.getAcceptTime().getTime())));
+                        otherValues.put("submitTime", String.format("%s", format.format(a.getSubmitTime().getTime())));
                         SurveyResponse sr = parseResponse(a.getWorkerId(), a.getAnswer(), survey, record, otherValues);
+                        assert !sr.otherValues.isEmpty();
                         boolean valid = isValid(sr, record);
                         LOGGER.debug(String.format("Response %s valid: %b", sr.getSrid(), valid));
-                        assert valid == (sr.getScore() > sr.getThreshold());
+                        assert valid == (sr.getScore() >= sr.getThreshold());
                         if (valid) {
                             record.addValidResponse(sr);
                             record.removeBotResponse(sr);
