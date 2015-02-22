@@ -6,6 +6,8 @@ import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.surveyman.survey.Survey;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class MturkLibrary extends AbstractLibrary {
@@ -19,6 +21,8 @@ public class MturkLibrary extends AbstractLibrary {
 
     public String MTURK_URL;
     public String EXTERNAL_HIT;
+
+    private List<String> backendHeaders = new ArrayList<String>();
 
     public String getActionForm() {
         return EXTERNAL_HIT;
@@ -53,6 +57,11 @@ public class MturkLibrary extends AbstractLibrary {
     }
 
     public void init() {
+
+        // add the backend headers
+        backendHeaders.add("submitTime");
+        backendHeaders.add("acceptTime");
+
         try {
             if (new File(AbstractLibrary.PARAMS).exists() && props==null){
                 props = new Properties();
@@ -119,6 +128,12 @@ public class MturkLibrary extends AbstractLibrary {
                 Runner.LOGGER.trace(io);
             }
         }
+    }
+
+    @Override
+    public List<String> getBackendHeaders()
+    {
+        return this.backendHeaders;
     }
 }
 

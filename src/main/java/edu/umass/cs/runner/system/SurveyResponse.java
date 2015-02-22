@@ -55,7 +55,7 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
      *  but are returned by the service. They should be pushed through the system
      *  and spit into an output file, unaltered.
      */
-    private static Map<String, String> otherValues = new HashMap<String, String>();
+    public  Map<String, String> otherValues = new HashMap<String, String>();
 
     // constructor without all the Mechanical Turk stuff (just for testing)
     public SurveyResponse(String wID){
@@ -73,8 +73,7 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
             throws SurveyException, DocumentException, IOException, SAXException, ParserConfigurationException {
         this.workerId = workerId;
         this.record = record;
-        otherValues.putAll(ov);
-        this.setResponses(parse(s, xmlAns));
+        this.setResponses(parse(s, xmlAns, ov));
     }
 
     @Override
@@ -177,7 +176,7 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
         return null;
     }
 
-    public static ArrayList<IQuestionResponse> parse(Survey s, String ansXML)
+    public static ArrayList<IQuestionResponse> parse(Survey s, String ansXML, Map<String, String> otherValues)
             throws DocumentException, SurveyException, ParserConfigurationException, IOException, SAXException {
         ArrayList<IQuestionResponse> retval = new ArrayList<IQuestionResponse>();
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();

@@ -66,7 +66,7 @@ public class MturkResponseManager extends AbstractResponseManager {
             String taskId)
     {
         String name = "getTask";
-        int waittime = 1;
+        int waittime = 2;
         while (true) {
             synchronized (service) {
                 try {
@@ -92,7 +92,7 @@ public class MturkResponseManager extends AbstractResponseManager {
             HIT hit)
     {
         String name = "getAllAssignmentsForHIT";
-        int waittime = 1;
+        int waittime = 2;
         while (true) {
             synchronized (service) {
                 try {

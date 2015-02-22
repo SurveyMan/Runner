@@ -1,5 +1,6 @@
 package edu.umass.cs.runner;
 
+import edu.umass.cs.runner.system.SurveyResponse;
 import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
 import edu.umass.cs.surveyman.analyses.OptTuple;
@@ -16,11 +17,10 @@ public class ResponseWriter {
             , "questionid", "questiontext", "questionpos"
             , "optionid", "optiontext", "optionpos"};
     public static final String sep = ",";
-    private static Map<String, String> otherValues = new HashMap<String, String>();
     public static final String newline = "\r\n";
 
 
-    public static String outputHeaders(Survey survey) {
+    public static String outputHeaders(Survey survey, List<String> backendHeaders) {
         StringBuilder s = new StringBuilder();
 
         // default headers
@@ -34,9 +34,8 @@ public class ResponseWriter {
                 s.append(String.format("%s%s", sep, header));
 
         // mturk-provided other headers
-        Set<String> keys = otherValues.keySet();
-        Collections.sort(Arrays.asList(keys.toArray(new String[keys.size()])));
-        for (String key : keys)
+        Collections.sort(backendHeaders);
+        for (String key : backendHeaders)
             s.append(String.format("%s%s", sep, key));
 
         //correlation
@@ -51,7 +50,7 @@ public class ResponseWriter {
     private static String outputQuestionResponse(
             Survey survey,
             IQuestionResponse qr,
-            AbstractSurveyResponse sr)
+            SurveyResponse sr)
     {
 
         StringBuilder retval = new StringBuilder();
@@ -100,6 +99,16 @@ public class ResponseWriter {
                 }
             }
 
+            // add contents for system-defined headers
+            Map<String, String> backendHeaders = sr.otherValues;
+            if (!backendHeaders.isEmpty()) {
+                List<String> keys = new ArrayList<String>(backendHeaders.keySet());
+                Collections.sort(keys);
+                for (String key : keys) {
+                    retval.append(String.format("\"%s\",%s", sep, backendHeaders.get(key)));
+                }
+            }
+
             // add correlated info
             if (!survey.correlationMap.isEmpty())
                 retval.append(String.format("%s%s", sep, survey.getCorrelationLabel(qr.getQuestion())));
@@ -115,7 +124,7 @@ public class ResponseWriter {
 
     public static String outputSurveyResponse(
             Survey survey,
-            AbstractSurveyResponse sr)
+            SurveyResponse sr)
     {
 
         StringBuilder retval = new StringBuilder();
@@ -130,11 +139,11 @@ public class ResponseWriter {
         return retval.toString();
     }
 
-    public static String outputSurveyResponses(Survey survey, List<AbstractSurveyResponse> surveyResponses) {
+    public static String outputSurveyResponses(Survey survey, List<SurveyResponse> surveyResponses) {
 
         StringBuilder retval = new StringBuilder();
 
-        for (AbstractSurveyResponse sr : surveyResponses)
+        for (SurveyResponse sr : surveyResponses)
             retval.append(outputSurveyResponse(survey, sr));
 
         return retval.toString();

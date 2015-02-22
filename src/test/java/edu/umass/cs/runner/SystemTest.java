@@ -16,6 +16,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 
 @RunWith(JUnit4.class)
 public class SystemTest extends TestLog {
@@ -60,8 +61,8 @@ public class SystemTest extends TestLog {
                 CSVParser csvParser = new CSVParser(new CSVLexer(testsFiles[i], String.valueOf(separators[i])));
                 Survey survey = csvParser.parse();
                 RandomRespondent rr = new RandomRespondent(survey, RandomRespondent.AdversaryType.UNIFORM);
-                String headers = ResponseWriter.outputHeaders(survey);
-                String output = ResponseWriter.outputSurveyResponse(survey, rr.getResponse());
+                String headers = ResponseWriter.outputHeaders(survey, new ArrayList<String>());
+                String output = ResponseWriter.outputSurveyResponse(survey, (SurveyResponse) rr.getResponse());
                 new SurveyResponse("").readSurveyResponses(survey, new StringReader(headers + output));
             } catch (SurveyException se) {
                 if (super.outcome[i])

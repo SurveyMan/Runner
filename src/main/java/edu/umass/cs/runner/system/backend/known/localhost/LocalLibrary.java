@@ -6,11 +6,15 @@ import edu.umass.cs.runner.Runner;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class LocalLibrary extends AbstractLibrary {
     public static final int port = 8000;
     public static final String jshome = "src/javascript";
+
+    private List<String> backendHeaders = new ArrayList<String>();
 
     public LocalLibrary(String propertiesURL) {
         if (propertiesURL == null || propertiesURL.equals(""))
@@ -45,4 +49,11 @@ public class LocalLibrary extends AbstractLibrary {
             System.exit(1);
         }
     }
+
+    @Override
+    public List<String> getBackendHeaders()
+    {
+        return backendHeaders;
+    }
+
 }

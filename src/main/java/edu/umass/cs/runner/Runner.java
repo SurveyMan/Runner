@@ -237,7 +237,7 @@ public class Runner {
                     File f = new File(record.outputFileName);
                     bw = new PrintWriter(new FileWriter(f, true));
                     if (! f.exists() || f.length()==0)
-                        bw.print(ResponseWriter.outputHeaders(survey));
+                        bw.print(ResponseWriter.outputHeaders(survey, record.library.getBackendHeaders()));
                     String txt = ResponseWriter.outputSurveyResponse(survey, sr);
                     LOGGER.info(txt);
                     bw.print(txt);

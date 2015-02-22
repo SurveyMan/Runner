@@ -4,6 +4,7 @@ import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.utils.Slurpie;
 
 import java.io.*;
+import java.util.List;
 import java.util.Properties;
 
 public abstract class AbstractLibrary {
@@ -51,6 +52,7 @@ public abstract class AbstractLibrary {
 
     public abstract String getActionForm();
     public abstract void init();
+    public abstract List<String> getBackendHeaders();
 
     public void updateProperties(String filename) throws IOException {
         String foo = Slurpie.slurp(filename);

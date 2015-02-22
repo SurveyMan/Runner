@@ -1,6 +1,5 @@
 package edu.umass.cs.runner.system;
 
-import edu.umass.cs.runner.ResponseWriter;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
 import edu.umass.cs.surveyman.analyses.OptTuple;
 import edu.umass.cs.surveyman.survey.Component;
@@ -12,6 +11,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +20,12 @@ public class QuestionResponse implements IQuestionResponse {
     private Question q;
     private List<OptTuple> opts = new ArrayList<OptTuple>();
     private int indexSeen;
+    /** otherValues is a map of the key value pairs that are not necessary for quality control,
+     *  but are returned by the service. They should be pushed through the system
+     *  and spit into an output file, unaltered.
+     */
+    public Map<String, String> otherValues = new HashMap<String, String>();
+
 
     public QuestionResponse()
     {
@@ -47,12 +53,6 @@ public class QuestionResponse implements IQuestionResponse {
         return q.quid;
     }
 
-    /** otherValues is a map of the key value pairs that are not necessary for quality control,
-     *  but are returned by the service. They should be pushed through the system
-     *  and spit into an output file, unaltered.
-     */
-    public Map<String, String> otherValues;
-
     public void add(
             String quid,
             OptTuple tupe,
@@ -74,11 +74,7 @@ public class QuestionResponse implements IQuestionResponse {
             throws SurveyException, JSONException {
 
         boolean custom = Question.customQuestion(response.getString("quid"));
-
-        if (this.otherValues == null)
-            this.otherValues = otherValues;
-        else
-            assert(this.otherValues.equals(otherValues));
+        this.otherValues.putAll(otherValues);
 
         if (custom){
             this.q = new Question(new StringComponent("CUSTOM", -1, -1), -1, -1);
