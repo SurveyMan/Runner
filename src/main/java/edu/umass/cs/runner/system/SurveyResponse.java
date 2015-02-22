@@ -63,6 +63,11 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
         this.srid = wID;
     }
 
+    public SurveyResponse(AbstractSurveyResponse abstractSurveyResponse) {
+        this.srid = abstractSurveyResponse.getSrid();
+        this.workerId = abstractSurveyResponse.getWorkerId();
+    }
+
     @Override
     public String getSrid()
     {
