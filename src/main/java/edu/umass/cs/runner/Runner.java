@@ -17,6 +17,8 @@ import edu.umass.cs.runner.system.backend.known.mturk.MturkLibrary;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkResponseManager;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkSurveyPoster;
 import edu.umass.cs.runner.utils.ArgReader;
+import edu.umass.cs.surveyman.analyses.AbstractRule;
+import edu.umass.cs.surveyman.analyses.StaticAnalysis;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
 import edu.umass.cs.surveyman.qc.Classifier;
@@ -393,6 +395,53 @@ public class Runner {
         };
     }
 
+    private static void exit(
+            AbstractResponseManager abstractResponseManager,
+            Record record)
+    {
+        for (ITask task : record.getAllTasks())
+            abstractResponseManager.makeTaskAvailable(task.getTaskId(), record);
+        interrupt.setInterrupt(true, "User called exit.");
+    }
+
+    public static Thread makeREPL(
+            final AbstractResponseManager abstractResponseManager,
+            final Record record)
+    {
+        return new Thread() {
+
+            public static final String ANSI_RESET = "\u001B[0m";
+            public static final String ANSI_PURPLE = "\u001B[35m";
+
+            @Override
+            public void run()
+            {
+                String exit = "[1] Expire currently running Tasks and exit.\n";
+                int exitChoice = 1;
+                PrintWriter printWriter = new PrintWriter(System.out);
+                String prompt = ANSI_PURPLE + "\nsurveyman>";
+                String instructions = "While the program is running, you may execute the following actions:\n\t"
+                        + exit;
+                printWriter.write(prompt + instructions + ANSI_RESET);
+                printWriter.flush();
+                while (true) {
+                    Scanner userAction = new Scanner(System.in);
+                    int choice = userAction.nextInt();
+                    switch (choice) {
+                        case 1:
+                            exit(abstractResponseManager, record);
+                            return;
+                        default:
+                            printWriter.write(prompt + String.format("%d not a recognized option.", choice) + ANSI_RESET);
+                            break;
+                    }
+                    printWriter.write(prompt + instructions + ANSI_RESET);
+                    printWriter.flush();
+                }
+            }
+        };
+    }
+
     public static void runAll(
             String s,
             String sep,
@@ -406,6 +455,8 @@ public class Runner {
         try {
             CSVParser csvParser = new CSVParser(new CSVLexer(s, sep));
             Survey survey = csvParser.parse();
+            AbstractRule.getDefaultRules();
+            StaticAnalysis.wellFormednessChecks(survey);
             // create and store the record
             Classifier classifier = Classifier.valueOf(((String) ns.get("classifier")).toUpperCase());
             boolean smoothing = Boolean.valueOf((String) ns.get("smoothing"));
@@ -418,9 +469,11 @@ public class Runner {
             Thread writer = makeWriter(survey);
             Thread responder = makeResponseGetter(survey);
             Thread runner = makeRunner(record);
+            Thread repl = makeREPL(responseManager, record);
             runner.start();
             writer.start();
             responder.start();
+            repl.start();
             StringBuilder msg = new StringBuilder(String.format("Target number of valid responses: %s\nTo take the survey, navigate to:"
                     , record.library.props.get(Parameters.NUM_PARTICIPANTS)));
             while (record.getAllTasks().length==0) {}
@@ -432,6 +485,7 @@ public class Runner {
             runner.join();
             responder.join();
             writer.join();
+            repl.join();
         } catch (SurveyException se) {
             System.err.println("Fatal error: " + se.getMessage() + "\nExiting...");
         }
