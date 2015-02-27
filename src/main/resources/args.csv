@@ -9,8 +9,7 @@ separator,"The survey CSV field separator. Should be a single character or speci
 separator,"The survey CSV field separator. Should be a single character or special character like '\t'. If omitted, default is ','.",ResponseConverter,false,",",",|\t|\\t"
 properties,"Path to a Java properties file containing survey metadata, relative from the current working directory. If omitted, default is '~/surveyman/params.properties'.",edu.umass.cs.runner.Runner,false,,
 properties,"Path to a Java properties file containing survey metadata, relative from the current working directory. If omitted, default is '~/surveyman/params.properties'.",Report,false,,
-verbose,"Produces verbose output. If omitted, default is no verbose output.",edu.umass.cs.runner.Runner,false,true,
-verbose,"Produces verbose output. If omitted, default is no verbose output.",Report,false,true,
+verbose,"Produces verbose output. If omitted, default is no verbose output.",edu.umass.cs.runner.Runner,false,true,"true|false"
 report,"Takes values 'static' or 'dynamic'. The results argument is required when performing dynamic analyses.","Report",true,,"dynamic|static"
 report,"Takes values 'static' or 'dynamic'. The results argument is required when performing dynamic analyses.","Report",true,,"dynamic|static"
 results,"The path to the survey's result file","Report",false,,
@@ -23,4 +22,5 @@ startId,"The id to initialize response identifiers. This should be used when par
 output,"The name of the output file. Default is 'results.csv'",ResponseConverter,false,results.csv,
 origin,"The exterior programming calling the main method on this class",Report,false,cmdline,"cmdline|debugger"
 strategy,"The strategy to use to compute our expected cost",Report,false,average-length,"average-length|max-length|min-length"
-dashboard,"Boolean indicating whether we should run the dashboard server while running this job.",edu.umass.cs.runner.Runner,false,true,
+dashboard,"Run the dashboard server.",edu.umass.cs.runner.Runner,false,true,"true|false"
+record,"Record directory. Required when running with --backend=NONE.",edu.umass.cs.runner.Runner,false,,,

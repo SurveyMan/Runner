@@ -67,7 +67,7 @@
   )
 
 (defn run
-  [^Namespace ns ^Record record ^BoxedBool dashboardInterrupt]
+  [^Namespace ns ^Record record]
   (reset! runner-args ns)
   (reset! record-data record)
   (ring.adapter.jetty/run-jetty

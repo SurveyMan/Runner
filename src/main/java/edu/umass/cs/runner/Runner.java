@@ -129,7 +129,8 @@ public class Runner {
         for (ITask hit : record.getAllTasks()) {
             hiturl = surveyPoster.makeTaskURL(responseManager, hit);
             responsesAdded = responseManager.addResponses(survey, hit);
-            LOGGER.debug(String.format("Added %d responses", responsesAdded));
+            if (responsesAdded > 0)
+                LOGGER.debug(String.format("Added %d responses", responsesAdded));
         }
 
         msg = String.format("Polling for responses for Tasks at %s (%d total; %d valid)"
@@ -405,6 +406,8 @@ public class Runner {
                             dashboardServer.stop();
                         } catch (Exception e) {
                             e.printStackTrace();
+                        } finally {
+                            System.exit(0);
                         }
                     } else {
                         printWriter.write(prompt + String.format("%d not a recognized option.", choice) + ANSI_RESET);
@@ -439,12 +442,11 @@ public class Runner {
             AbstractResponseManager.putRecord(survey, record);
             Runner.alpha = alpha;
             Runner.smoothing = smoothing;
-            BoxedBool dashboardInterrupt = new BoxedBool();
             // now we're ready to go
             Thread writer = makeWriter(survey);
             Thread responder = makeResponseGetter(survey);
             Thread runner = makeRunner(record);
-            Thread repl = makeREPL(responseManager, record, runDashboard(ns, record, dashboardInterrupt));
+            Thread repl = makeREPL(responseManager, record, runDashboard(ns, record));
             runner.start();
             writer.start();
             responder.start();
@@ -467,15 +469,14 @@ public class Runner {
 
     public static org.eclipse.jetty.server.Server runDashboard(
             Namespace ns,
-            Record record,
-            BoxedBool dashboardInterrupt)
+            Record record)
     {
         if (!Boolean.parseBoolean((String)ns.get("dashboard")))
             return null;
         IFn require = Clojure.var("clojure.core", "require");
         require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
         IFn run = Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "run");
-        return (org.eclipse.jetty.server.Server) run.invoke(ns, record, dashboardInterrupt);
+        return (org.eclipse.jetty.server.Server) run.invoke(ns, record);
     }
 
     public static void main(
@@ -502,7 +503,10 @@ public class Runner {
 
             AbstractLibrary.dashboardDump(ns);
 
-            runAll(ns.getString("survey"), ns.getString("separator"), ns);
+            if (backendType.equals(KnownBackendType.NONE))
+                runDashboard(ns, Record.deserializeLatestRecord((String) ns.get("record")));
+            else
+                runAll(ns.getString("survey"), ns.getString("separator"), ns);
 
             if (backendType.equals(KnownBackendType.LOCALHOST))
                 Server.endServe();

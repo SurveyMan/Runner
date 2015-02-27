@@ -33,8 +33,8 @@ public abstract class AbstractLibrary {
     public static final String CUSTOMCSS = LOCALDIR + fileSep + "custom.css";
 
     // state/session/job information
-    public static final String UNFINISHED_JOB_FILE = AbstractLibrary.LOCALDIR + AbstractLibrary.fileSep + ".unfinished";
-    public static final String BONUS_DATA = AbstractLibrary.LOCALDIR + AbstractLibrary.fileSep + ".bonuses";
+    public static final String UNFINISHED_JOB_FILE = AbstractLibrary.LOCALDIR + AbstractLibrary.fileSep + "unfinished";
+    public static final String BONUS_DATA = AbstractLibrary.LOCALDIR + AbstractLibrary.fileSep + "bonuses";
     public static final String TIME = String.valueOf(System.currentTimeMillis());
     public static final String STATEDATADIR = String.format("%1$s%2$s.data", LOCALDIR, fileSep);
 

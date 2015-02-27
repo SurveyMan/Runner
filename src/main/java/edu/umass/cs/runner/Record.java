@@ -105,7 +105,7 @@ public class Record implements Serializable {
                 htmlFileName.createNewFile();
             File recordDir = new File(this.RECORDDIR);
             if (! recordDir.exists())
-                recordDir.mkdir();
+                recordDir.mkdirs();
             this.outputFileName = outfile.getCanonicalPath();
             this.htmlFileName = htmlFileName.getCanonicalPath();
         } catch (IOException e) {
@@ -126,6 +126,12 @@ public class Record implements Serializable {
                 , survey.sourceName
                 , survey.sid
         ));
+        try {
+            this.serializeRecord();
+        } catch (IOException io) {
+            LOGGER.warn(String.format("Attempt to serialize record %s in constructor failed:,", this.rid));
+            LOGGER.warn(io);
+        }
     }
 
     public Record(
