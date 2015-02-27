@@ -42,9 +42,6 @@ public class Runner {
 
     public static final Logger LOGGER = LogManager.getLogger(Runner.class.getName());
     private static long timeSinceLastNotice = System.currentTimeMillis();
-    private static final String LOCALDIR = ".surveyman";
-    private static final String CURRENT_DASHBOARD_DATA = String.format(
-            "%s%scurrent_dashboard.json", LOCALDIR, AbstractLibrary.fileSep);
     public static KnownBackendType backendType;
     public static AbstractResponseManager responseManager;
     public static ISurveyPoster surveyPoster;
@@ -53,16 +50,6 @@ public class Runner {
     public static final double basePay = 7.25;
     public static double alpha = 0.05;
     public static boolean smoothing = false;
-
-    public static void makeLocalFolder()
-    {
-        File f = new File(".surveyman");
-        if (!f.exists()) {
-            boolean folder = f.mkdir();
-            assert folder;
-        }
-        LOGGER.info(f.getAbsolutePath());
-    }
 
     public static ArgumentParser makeArgParser()
     {
@@ -113,7 +100,6 @@ public class Runner {
                 surveyPoster.init(config);
                 break;
         }
-        makeLocalFolder();
     }
 
     public static void init(
@@ -295,26 +281,6 @@ public class Runner {
         };
     }
 
-    public static void dashboardDump(
-            Namespace ns)
-    {
-        try {
-            FileWriter out = new FileWriter(CURRENT_DASHBOARD_DATA);
-            List<String> strings = new ArrayList<String>();
-            for (Map.Entry<String, Object> entry : ns.getAttrs().entrySet())
-                strings.add(String.format("\"%s\" : \"%s\"", entry.getKey(), entry.getValue()));
-            out.write("{ " + StringUtils.join(strings, ", ") + " }");
-            out.flush();
-            out.close();
-        } catch (FileNotFoundException e) {
-            LOGGER.fatal(e);
-            System.exit(1);
-        } catch (IOException io) {
-            LOGGER.fatal(io);
-            System.exit(1);
-        }
-    }
-
     public static void run(
             final Record record)
             throws InterruptedException,
@@ -406,7 +372,8 @@ public class Runner {
 
     public static Thread makeREPL(
             final AbstractResponseManager abstractResponseManager,
-            final Record record)
+            final Record record,
+            final org.eclipse.jetty.server.Server dashboardServer)
     {
         return new Thread() {
 
@@ -416,24 +383,31 @@ public class Runner {
             @Override
             public void run()
             {
-                String exit = "[1] Expire currently running Tasks and exit.\n";
+                String exit = "\t[1] Expire currently running Tasks and exit the runner (dashboard will still run).\n";
                 int exitChoice = 1;
+                String stopDashboard = "\t[2] Stop the dashboard server.\n";
+                int stopDashboardChoice = 2;
                 PrintWriter printWriter = new PrintWriter(System.out);
-                String prompt = ANSI_PURPLE + "\nsurveyman>";
-                String instructions = "While the program is running, you may execute the following actions:\n\t"
-                        + exit;
+                String prompt = ANSI_PURPLE + "\nsurveyman> ";
+                String instructions = "While the program is running, you may execute the following actions:\n"
+                        + exit + stopDashboard;
                 printWriter.write(prompt + instructions + ANSI_RESET);
                 printWriter.flush();
                 while (true) {
                     Scanner userAction = new Scanner(System.in);
                     int choice = userAction.nextInt();
-                    switch (choice) {
-                        case 1:
-                            exit(abstractResponseManager, record);
-                            return;
-                        default:
-                            printWriter.write(prompt + String.format("%d not a recognized option.", choice) + ANSI_RESET);
-                            break;
+                    if (choice==exitChoice) {
+                        exit(abstractResponseManager, record);
+                        return;
+                    } else if (choice==stopDashboardChoice) {
+                        LOGGER.info("User cancelling dashboard service.");
+                        try {
+                            dashboardServer.stop();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        printWriter.write(prompt + String.format("%d not a recognized option.", choice) + ANSI_RESET);
                     }
                     printWriter.write(prompt + instructions + ANSI_RESET);
                     printWriter.flush();
@@ -465,11 +439,12 @@ public class Runner {
             AbstractResponseManager.putRecord(survey, record);
             Runner.alpha = alpha;
             Runner.smoothing = smoothing;
+            BoxedBool dashboardInterrupt = new BoxedBool();
             // now we're ready to go
             Thread writer = makeWriter(survey);
             Thread responder = makeResponseGetter(survey);
             Thread runner = makeRunner(record);
-            Thread repl = makeREPL(responseManager, record);
+            Thread repl = makeREPL(responseManager, record, runDashboard(ns, record, dashboardInterrupt));
             runner.start();
             writer.start();
             responder.start();
@@ -481,7 +456,6 @@ public class Runner {
                 msg.append("\n\t" + surveyPoster.makeTaskURL(responseManager, task));
             LOGGER.info(msg.toString());
             System.out.println(msg.toString());
-            runDashboard(ns, record);
             runner.join();
             responder.join();
             writer.join();
@@ -491,12 +465,17 @@ public class Runner {
         }
     }
 
-    public static void runDashboard(Namespace ns, Record record)
+    public static org.eclipse.jetty.server.Server runDashboard(
+            Namespace ns,
+            Record record,
+            BoxedBool dashboardInterrupt)
     {
+        if (!Boolean.parseBoolean((String)ns.get("dashboard")))
+            return null;
         IFn require = Clojure.var("clojure.core", "require");
         require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
         IFn run = Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "run");
-        run.invoke(ns, record);
+        return (org.eclipse.jetty.server.Server) run.invoke(ns, record, dashboardInterrupt);
     }
 
     public static void main(
@@ -511,7 +490,6 @@ public class Runner {
             InstantiationException,
             ClassNotFoundException
     {
-
         ArgumentParser argumentParser = makeArgParser();
         Namespace ns;
         try {
@@ -522,7 +500,7 @@ public class Runner {
             if (backendType.equals(KnownBackendType.LOCALHOST))
                 Server.startServe();
 
-            dashboardDump(ns);
+            AbstractLibrary.dashboardDump(ns);
 
             runAll(ns.getString("survey"), ns.getString("separator"), ns);
 

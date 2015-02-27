@@ -1,10 +1,15 @@
 package edu.umass.cs.runner.system.backend;
 
 import edu.umass.cs.runner.Runner;
+import edu.umass.cs.runner.system.exceptions.SystemException;
 import edu.umass.cs.runner.utils.Slurpie;
+import net.sourceforge.argparse4j.inf.Namespace;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 public abstract class AbstractLibrary {
@@ -13,30 +18,34 @@ public abstract class AbstractLibrary {
     public static final String fileSep = File.separator;
 
     // local configuration information
-    public static final String DIR = System.getProperty("user.home") + fileSep + "surveyman";
+    protected static final String LOCALDIR = ".surveyman";
+    public static final String CURRENT_DASHBOARD_DATA = String.format(
+            "%s%scurrent_dashboard.json", LOCALDIR, AbstractLibrary.fileSep);
     public static final String OUTDIR = "output";
-    public static final String PARAMS = DIR + fileSep + "params.properties";
+    public static final String PARAMS = LOCALDIR + fileSep + "params.properties";
+    public static final String RECORDDIR =  LOCALDIR + fileSep + "records";
 
     // resources
     public static final String HTMLSKELETON = "HTMLSkeleton.html";
-    public static final String JSSKELETON = DIR + fileSep + "custom.js";
+    public static final String JSSKELETON = LOCALDIR + fileSep + "custom.js";
     public static final String QUOTS = "quots";
     public static final String XMLSKELETON = "XMLSkeleton.xml";
-    public static final String CUSTOMCSS = DIR + fileSep + "custom.css";
+    public static final String CUSTOMCSS = LOCALDIR + fileSep + "custom.css";
 
     // state/session/job information
-    public static final String UNFINISHED_JOB_FILE = AbstractLibrary.DIR + AbstractLibrary.fileSep + ".unfinished";
-    public static final String BONUS_DATA = AbstractLibrary.DIR + AbstractLibrary.fileSep + ".bonuses";
+    public static final String UNFINISHED_JOB_FILE = AbstractLibrary.LOCALDIR + AbstractLibrary.fileSep + ".unfinished";
+    public static final String BONUS_DATA = AbstractLibrary.LOCALDIR + AbstractLibrary.fileSep + ".bonuses";
     public static final String TIME = String.valueOf(System.currentTimeMillis());
-    public static final String STATEDATADIR = String.format("%1$s%2$s.data", DIR, fileSep);
+    public static final String STATEDATADIR = String.format("%1$s%2$s.data", LOCALDIR, fileSep);
+
     public static final double FEDMINWAGE = 7.25;
     public static double timePerQuestionInSeconds = 10;
 
 
     static {
         try {
-            if (! new File(DIR).exists())
-                new File(DIR).mkdir();
+            if (! new File(LOCALDIR).exists())
+                new File(LOCALDIR).mkdir();
             if (! new File(OUTDIR).exists())
                 new File(OUTDIR).mkdir();
             if (! new File(STATEDATADIR).exists())
@@ -58,4 +67,35 @@ public abstract class AbstractLibrary {
         String foo = Slurpie.slurp(filename);
         props.load(new StringReader(foo));
     }
+
+
+    public static void dashboardDump(
+            Namespace ns)
+    {
+        try {
+            FileWriter out = new FileWriter(AbstractLibrary.CURRENT_DASHBOARD_DATA);
+            List<String> strings = new ArrayList<String>();
+            for (Map.Entry<String, Object> entry : ns.getAttrs().entrySet())
+                strings.add(String.format("\"%s\" : \"%s\"", entry.getKey(), entry.getValue()));
+            out.write("{ " + StringUtils.join(strings, ", ") + " }");
+            out.flush();
+            out.close();
+        } catch (FileNotFoundException e) {
+            Runner.LOGGER.fatal(e);
+            System.exit(1);
+        } catch (IOException io) {
+            Runner.LOGGER.fatal(io);
+            System.exit(1);
+        }
+    }
+
+    public static void get_params(){
+        PrintWriter printWriter = new PrintWriter(System.out);
+        printWriter.print(String.format(
+                "I see this is the first time you have run edu.umass.cs.runner.Runner in directory %s. In order to " +
+                        "continue, we will need some data.\n" +
+                        "",
+                new File(".").getAbsolutePath()));
+    }
+
 }

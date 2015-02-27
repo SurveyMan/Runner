@@ -56,3 +56,17 @@ junit*
 foo.csv
 bar.csv
 *.tar
+com/amazonaws/mturk/util/*
+com/amazonaws/mturk/service/exception/*.java
+com/amazonaws/mturk/*
+com/amazonaws/mturk/service/axis/*.java
+com/amazonaws/mturk/requester/*.java
+com/amazonaws/mturk/filter/*.java
+com/amazonaws/mturk/dataschema/impl/*.java
+com/amazonaws/mturk/dataschema/*.java
+com/amazonaws/mturk/cmd/summary/*.java
+com/amazonaws/mturk/cmd/*.java
+com/amazonaws/mturk/build/*.java
+com/amazonaws/mturk/addon/*.java
+com/amazonaws/mechanicalturk/common/domain/*.java
+com/amazon/mechanicalturk/common/domain/*.java

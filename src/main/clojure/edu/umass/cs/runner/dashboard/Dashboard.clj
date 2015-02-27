@@ -2,7 +2,8 @@
   (:gen-class
     :name edu.umass.cs.runner.dashboard.Dashboard
     :methods [#^{:static true} [run [net.sourceforge.argparse4j.inf.Namespace] void]])
-  (:import net.sourceforge.argparse4j.inf.Namespace [edu.umass.cs.surveyman.qc QCMetrics])
+  (:import net.sourceforge.argparse4j.inf.Namespace [edu.umass.cs.surveyman.qc QCMetrics]
+           [edu.umass.cs.runner.system BoxedBool])
   (:import edu.umass.cs.surveyman.utils.Slurpie)
   (:import edu.umass.cs.runner.Record)
   (:import edu.umass.cs.runner.system.Parameters)
@@ -66,7 +67,7 @@
   )
 
 (defn run
-  [^Namespace ns ^Record record]
+  [^Namespace ns ^Record record ^BoxedBool dashboardInterrupt]
   (reset! runner-args ns)
   (reset! record-data record)
   (ring.adapter.jetty/run-jetty
@@ -77,4 +78,10 @@
 (defn -run
   [^Namespace ns ^Record record]
   (run ns)
+  )
+
+(defn -main
+  [& args]
+  ;; This is called when we have the Runner running a survey in another process, and we want to monitor it in a
+  ;; separate process.
   )

@@ -14,14 +14,13 @@ import edu.umass.cs.surveyman.utils.Gensym;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
-public class Record {
+public class Record implements Serializable {
 
     final private static Logger LOGGER = Logger.getLogger(Record.class);
-    final private static Gensym gensym = new Gensym("rec");
+    final private static Gensym gensym = new Gensym(String.format("rec_%d", System.currentTimeMillis()));
 
     public String outputFileName;
     final public Survey survey;
@@ -36,7 +35,46 @@ public class Record {
     private String htmlFileName = "";
     public KnownBackendType backendType;
     public final double expectedCost;
+    private final String RECORDDIR = AbstractLibrary.RECORDDIR + AbstractLibrary.fileSep + this.rid;
 
+    public void serializeRecord()
+            throws IOException
+    {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        FileOutputStream fileOutputStream = new FileOutputStream(RECORDDIR + AbstractLibrary.fileSep + timestamp);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+        objectOutputStream.writeObject(this);
+        objectOutputStream.close();
+        fileOutputStream.close();
+        LOGGER.info("Wrote record data to "+RECORDDIR+AbstractLibrary.fileSep+timestamp);
+    }
+
+    public static Record deserializeRecord(
+            String serializedRecordFilename)
+            throws IOException, ClassNotFoundException {
+        Record record;
+        FileInputStream fileInputStream = new FileInputStream(serializedRecordFilename);
+        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+        record = (Record) objectInputStream.readObject();
+        objectInputStream.close();
+        fileInputStream.close();
+        return record;
+    }
+
+    public static Record deserializeLatestRecord(
+            String recordDirectory)
+            throws IOException, ClassNotFoundException
+    {
+        File dir = new File(recordDirectory);
+        assert dir.isDirectory() : String.format("File %s is not a directory", recordDirectory);
+        long maxTimestamp = Long.MIN_VALUE;
+        for (File file : dir.listFiles()) {
+            long thisTimestamp = Long.parseLong(file.getName());
+            if (thisTimestamp > maxTimestamp)
+                maxTimestamp = thisTimestamp;
+        }
+        return deserializeRecord(recordDirectory + AbstractLibrary.fileSep + String.valueOf(maxTimestamp));
+    }
 
     public Record(
             final Survey survey,
@@ -65,6 +103,9 @@ public class Record {
                     , AbstractLibrary.TIME));
             if (! htmlFileName.exists())
                 htmlFileName.createNewFile();
+            File recordDir = new File(this.RECORDDIR);
+            if (! recordDir.exists())
+                recordDir.mkdir();
             this.outputFileName = outfile.getCanonicalPath();
             this.htmlFileName = htmlFileName.getCanonicalPath();
         } catch (IOException e) {
@@ -124,8 +165,15 @@ public class Record {
         return this.htmlFileName;
     }
 
-    public void addNewTask(ITask task) {
+    public void addNewTask(
+            ITask task)
+    {
         tasks.push(task);
+        try {
+            this.serializeRecord();
+        } catch (IOException io) {
+            LOGGER.warn("Attempted to serialize record:\n"+io);
+        }
     }
 
     public ITask[] getAllTasks()

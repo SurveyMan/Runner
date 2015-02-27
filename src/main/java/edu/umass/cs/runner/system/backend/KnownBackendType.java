@@ -1,3 +1,3 @@
 package edu.umass.cs.runner.system.backend;
 
-public enum KnownBackendType { MTURK, LOCALHOST }
+public enum KnownBackendType { MTURK, LOCALHOST, NONE }

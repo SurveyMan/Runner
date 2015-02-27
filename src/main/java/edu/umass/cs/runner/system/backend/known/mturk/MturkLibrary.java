@@ -6,13 +6,14 @@ import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.surveyman.survey.Survey;
 
 import java.io.*;
+import java.security.acl.LastOwnerException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 public class MturkLibrary extends AbstractLibrary {
 
-    public String CONFIG = DIR + fileSep + "mturk_config";
+    public String CONFIG = LOCALDIR + fileSep + "mturk_config";
 
     private static final String MTURK_SANDBOX_URL = "https://mechanicalturk.sandbox.amazonaws.com?Service=AWSMechanicalTurkRequester";
     private static final String MTURK_PROD_URL = "https://mechanicalturk.amazonaws.com?Service=AWSMechanicalTurkRequester";
