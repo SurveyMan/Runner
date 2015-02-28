@@ -406,8 +406,6 @@ public class Runner {
                             dashboardServer.stop();
                         } catch (Exception e) {
                             e.printStackTrace();
-                        } finally {
-                            System.exit(0);
                         }
                     } else {
                         printWriter.write(prompt + String.format("%d not a recognized option.", choice) + ANSI_RESET);

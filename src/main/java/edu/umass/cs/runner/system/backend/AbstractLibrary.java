@@ -5,6 +5,7 @@ import edu.umass.cs.runner.system.exceptions.SystemException;
 import edu.umass.cs.runner.utils.Slurpie;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -12,8 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public abstract class AbstractLibrary {
+public abstract class AbstractLibrary implements Serializable {
 
+    public static Logger LOGGER = Runner.LOGGER;
     public Properties props;
     public static final String fileSep = File.separator;
 
@@ -62,6 +64,8 @@ public abstract class AbstractLibrary {
     public abstract String getActionForm();
     public abstract void init();
     public abstract List<String> getBackendHeaders();
+    @Override
+    public abstract boolean equals(Object o);
 
     public void updateProperties(String filename) throws IOException {
         String foo = Slurpie.slurp(filename);

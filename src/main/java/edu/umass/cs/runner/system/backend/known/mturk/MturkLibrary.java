@@ -3,13 +3,14 @@ package edu.umass.cs.runner.system.backend.known.mturk;
 import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.system.Parameters;
 import edu.umass.cs.runner.system.backend.AbstractLibrary;
+import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.survey.Survey;
+import org.apache.commons.lang3.StringUtils;
+import sun.swing.StringUIClientPropertyKey;
 
 import java.io.*;
 import java.security.acl.LastOwnerException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class MturkLibrary extends AbstractLibrary {
 
@@ -64,10 +65,14 @@ public class MturkLibrary extends AbstractLibrary {
         backendHeaders.add("acceptTime");
 
         try {
-            if (new File(AbstractLibrary.PARAMS).exists() && props==null){
+            File paramsFile = new File(AbstractLibrary.PARAMS);
+            if (paramsFile.exists() && props==null){
                 props = new Properties();
                 Runner.LOGGER.info("Loading properties from " + AbstractLibrary.PARAMS);
                 props.load(new FileReader(AbstractLibrary.PARAMS));
+            } else {
+                Runner.LOGGER.warn(String.format("%s exists: %b\n\tprops is null: %b",
+                        AbstractLibrary.PARAMS, paramsFile.exists(), props==null));
             }
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();
@@ -131,10 +136,50 @@ public class MturkLibrary extends AbstractLibrary {
         }
     }
 
+    public static void dumpSampleProperties()
+            throws IOException
+    {
+        if (!new File(LOCALDIR).exists())
+            new File(LOCALDIR).mkdirs();
+
+        PrintWriter writer = new PrintWriter(new FileWriter(PARAMS));
+        writer.write(Slurpie.slurp("params.properties"));
+        writer.flush();
+        writer.close();
+    }
+
     @Override
     public List<String> getBackendHeaders()
     {
         return this.backendHeaders;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof MturkLibrary) {
+            MturkLibrary that = (MturkLibrary) o;
+            if (!this.CONFIG.equals(that.CONFIG)) {
+                LOGGER.debug(String.format("Config filenames are not equal (%s vs. %s)", this.CONFIG, that.CONFIG));
+                return false;
+            } else if (!this.EXTERNAL_HIT.equals(that.EXTERNAL_HIT)) {
+                LOGGER.debug(String.format("External HIT URLs not equal (%s vs. %s)", this.EXTERNAL_HIT, that.EXTERNAL_HIT));
+                return false;
+            } else if (!this.MTURK_URL.equals(that.MTURK_URL)) {
+                LOGGER.debug(String.format("Mturk URLs not equal (%s vs. %s)", this.MTURK_URL, that.MTURK_URL));
+                return false;
+            } else {
+                Set<String> thisBackendHeaders = new HashSet<String>(this.backendHeaders);
+                Set<String> thatBackendHeaders = new HashSet<String>(that.backendHeaders);
+                if (thisBackendHeaders.equals(thatBackendHeaders))
+                    return true;
+                else {
+                    LOGGER.debug(String.format("Backend headers not equal (%s vs. %s)",
+                            StringUtils.join(thisBackendHeaders, ","),
+                            StringUtils.join(thatBackendHeaders, ",")));
+                    return false;
+                }
+            }
+        } else return false;
     }
 }
 

@@ -31,11 +31,7 @@ public class MTurkTest extends TestLog {
         }
     }
 
-    public MTurkTest()
-            throws Exception
-    {
-        super.init(this.getClass());
-    }
+    public MTurkTest() throws Exception {}
 
     private SurveyTasksTuple sendSurvey(
             int i)
