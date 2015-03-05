@@ -2,13 +2,12 @@ package edu.umass.cs.runner.system.backend.known.localhost;
 
 import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.runner.Runner;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class LocalLibrary extends AbstractLibrary {
     public static final int port = 8000;
@@ -54,6 +53,23 @@ public class LocalLibrary extends AbstractLibrary {
     public List<String> getBackendHeaders()
     {
         return backendHeaders;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof LocalLibrary) {
+            LocalLibrary that = (LocalLibrary) o;
+            Set<String> thisBackendHeaders = new HashSet<String>(this.backendHeaders);
+            Set<String> thatBackendHeaders = new HashSet<String>(that.backendHeaders);
+            if (thisBackendHeaders.equals(thatBackendHeaders))
+                return true;
+            else {
+                LOGGER.debug(String.format("Backend headers not equal (%s vs. %s)",
+                        StringUtils.join(thisBackendHeaders, ","),
+                        StringUtils.join(thatBackendHeaders, ",")));
+                return false;
+            }
+        } else return false;
     }
 
 }

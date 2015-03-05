@@ -1,4 +1,4 @@
-(ns edu.umass.cs.runner.testLog
+(ns edu.umass.cs.runner.clojureTestLog
   (:gen-class)
   (:import
     (edu.umass.cs.runner Record)

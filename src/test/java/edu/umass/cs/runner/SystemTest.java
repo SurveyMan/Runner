@@ -11,32 +11,39 @@ import edu.umass.cs.surveyman.input.csv.CSVParser;
 import edu.umass.cs.surveyman.qc.RandomRespondent;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
+import junit.framework.Assert;
+import org.apache.commons.lang.ObjectUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 @RunWith(JUnit4.class)
 public class SystemTest extends TestLog {
 
     public SystemTest() throws Exception {
-        super.init(this.getClass());
     }
 
     @Test
-    public void testMturkHTMLGenerator() throws Exception {
+    public void testMturkHTMLGenerator()
+            throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, IOException
+    {
         try{
             for ( int i = 0 ; i < testsFiles.length ; i++ ) {
                 CSVParser csvParser = new CSVParser(new CSVLexer(testsFiles[i], String.valueOf(separators[i])));
                 Survey survey = csvParser.parse();
+                MturkLibrary.dumpSampleProperties();
                 Record record = new Record(survey, new MturkLibrary(), KnownBackendType.MTURK);
                 HTML.getHTMLString(record, new MturkHTML());
                 LOGGER.info(testsFiles[i]+" generated IHTML successfully.");
             }
         } catch (SurveyException se) {
-            LOGGER.warn(se);
+            LOGGER.fatal(se);
         }
     }
 
@@ -73,6 +80,25 @@ public class SystemTest extends TestLog {
                     throw npe;
                 else System.out.println("THIS NEEDS TO FAIL GRACEFULLY");
             }
+        }
+    }
+
+    @Test
+    public void testSerialize()
+            throws SurveyException, IOException, NoSuchMethodException, IllegalAccessException,
+                   InvocationTargetException, ClassNotFoundException
+    {
+        CSVParser csvParser = new CSVParser(new CSVLexer(testsFiles[0], String.valueOf(separators[0])));
+        Survey survey = csvParser.parse();
+        MturkLibrary.dumpSampleProperties();
+        Record record = new Record(survey, new MturkLibrary(), KnownBackendType.MTURK);
+        String serializedFileName = record.serializeRecord();
+        Record deserializedRecord = Record.deserializeRecord(serializedFileName);
+        try {
+            Assert.assertEquals(record, deserializedRecord);
+        } catch (NullPointerException npe) {
+            npe.printStackTrace();
+            LOGGER.fatal(npe);
         }
     }
 

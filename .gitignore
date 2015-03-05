@@ -70,3 +70,6 @@ com/amazonaws/mturk/build/*.java
 com/amazonaws/mturk/addon/*.java
 com/amazonaws/mechanicalturk/common/domain/*.java
 com/amazon/mechanicalturk/common/domain/*.java
+.surveyman
+analyses
+entropy_stress_test

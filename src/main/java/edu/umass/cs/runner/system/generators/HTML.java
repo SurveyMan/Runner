@@ -83,7 +83,7 @@ public class HTML {
     {
         String html = "";
         try {
-            assert(record!=null);
+            assert record!=null;
             assert(record.library!=null);
             assert(record.library.props!=null);
             String strPreview = cleanedPreview(record);
