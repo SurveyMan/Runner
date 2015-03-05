@@ -17,10 +17,13 @@ import edu.umass.cs.runner.system.backend.known.mturk.MturkLibrary;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkResponseManager;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkSurveyPoster;
 import edu.umass.cs.runner.utils.ArgReader;
+import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.analyses.AbstractRule;
 import edu.umass.cs.surveyman.analyses.StaticAnalysis;
+import edu.umass.cs.surveyman.input.AbstractParser;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
+import edu.umass.cs.surveyman.input.json.JSONParser;
 import edu.umass.cs.surveyman.qc.Classifier;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
@@ -418,7 +421,6 @@ public class Runner {
             }
         };
     }
-
     public static void runAll(
             String s,
             String sep,
@@ -429,15 +431,35 @@ public class Runner {
             IOException,
             InterruptedException
     {
+        Classifier classifier = Classifier.valueOf(((String) ns.get("classifier")).toUpperCase());
+        boolean smoothing = Boolean.valueOf((String) ns.get("smoothing"));
+        double alpha = Double.valueOf((String) ns.get("alpha"));
+        runAll(s, sep, classifier, smoothing, alpha);
+    }
+
+    public static void runAll(
+            String s,
+            String sep,
+            Classifier classifier,
+            boolean smoothing,
+            double alpha)
+            throws InvocationTargetException,
+            IllegalAccessException,
+            NoSuchMethodException,
+            IOException,
+            InterruptedException
+    {
         try {
-            CSVParser csvParser = new CSVParser(new CSVLexer(s, sep));
-            Survey survey = csvParser.parse();
+            AbstractParser parser;
+            if (s.endsWith("csv"))
+                parser = new CSVParser(new CSVLexer(s, sep));
+            else if (s.endsWith("json"))
+                parser = new JSONParser(Slurpie.slurp(s));
+            else throw new RuntimeException("Input files must have csv or json extensions.");
+            Survey survey = parser.parse();
             AbstractRule.getDefaultRules();
             StaticAnalysis.wellFormednessChecks(survey);
             // create and store the record
-            Classifier classifier = Classifier.valueOf(((String) ns.get("classifier")).toUpperCase());
-            boolean smoothing = Boolean.valueOf((String) ns.get("smoothing"));
-            double alpha = Double.valueOf((String) ns.get("alpha"));
             final Record record = new Record(survey, library, classifier, smoothing, alpha, backendType);
             AbstractResponseManager.putRecord(survey, record);
             Runner.alpha = alpha;
@@ -446,11 +468,11 @@ public class Runner {
             Thread writer = makeWriter(survey);
             Thread responder = makeResponseGetter(survey);
             Thread runner = makeRunner(record);
-            Thread repl = makeREPL(responseManager, record, runDashboard(ns, record));
+//            Thread repl = makeREPL(responseManager, record, runDashboard(ns, record));
             runner.start();
             writer.start();
             responder.start();
-            repl.start();
+//            repl.start();
             StringBuilder msg = new StringBuilder(String.format("Target number of valid responses: %s\nTo take the survey, navigate to:"
                     , record.library.props.get(Parameters.NUM_PARTICIPANTS)));
             while (record.getAllTasks().length==0) {}
@@ -461,7 +483,7 @@ public class Runner {
             runner.join();
             responder.join();
             writer.join();
-            repl.join();
+//            repl.join();
         } catch (SurveyException se) {
             System.err.println("Fatal error: " + se.getMessage() + "\nExiting...");
         }
