@@ -34,7 +34,6 @@ public class LocalResponseManager extends AbstractResponseManager {
 
     public LocalResponseManager()
     {
-        
     }
 
     public List<Server.IdResponseTuple> getNewAnswers()

@@ -424,20 +424,28 @@ public class Runner {
             String sep,
             Namespace ns)
             throws InvocationTargetException,
-            IllegalAccessException,
-            NoSuchMethodException,
-            IOException,
-            InterruptedException
+                   IllegalAccessException,
+                   NoSuchMethodException,
+                   IOException,
+                   InterruptedException, SurveyException
     {
         Classifier classifier = Classifier.valueOf(((String) ns.get("classifier")).toUpperCase());
         boolean smoothing = Boolean.valueOf((String) ns.get("smoothing"));
         double alpha = Double.valueOf((String) ns.get("alpha"));
-        runAll(s, sep, classifier, smoothing, alpha);
+        AbstractParser parser;
+        if (s.endsWith("csv"))
+            parser = new CSVParser(new CSVLexer(s, sep));
+        else if (s.endsWith("json"))
+            parser = new JSONParser(Slurpie.slurp(s));
+        else throw new RuntimeException("Input files must have csv or json extensions.");
+        Survey survey = parser.parse();
+        AbstractRule.getDefaultRules();
+        StaticAnalysis.wellFormednessChecks(survey);
+        runAll(survey, classifier, smoothing, alpha);
     }
 
     public static void runAll(
-            String s,
-            String sep,
+            Survey survey,
             Classifier classifier,
             boolean smoothing,
             double alpha)
@@ -447,44 +455,31 @@ public class Runner {
             IOException,
             InterruptedException
     {
-        try {
-            AbstractParser parser;
-            if (s.endsWith("csv"))
-                parser = new CSVParser(new CSVLexer(s, sep));
-            else if (s.endsWith("json"))
-                parser = new JSONParser(Slurpie.slurp(s));
-            else throw new RuntimeException("Input files must have csv or json extensions.");
-            Survey survey = parser.parse();
-            AbstractRule.getDefaultRules();
-            StaticAnalysis.wellFormednessChecks(survey);
-            // create and store the record
-            final Record record = new Record(survey, library, classifier, smoothing, alpha, backendType);
-            AbstractResponseManager.putRecord(survey, record);
-            Runner.alpha = alpha;
-            Runner.smoothing = smoothing;
-            // now we're ready to go
-            Thread writer = makeWriter(survey);
-            Thread responder = makeResponseGetter(survey);
-            Thread runner = makeRunner(record);
+        // create and store the record
+        final Record record = new Record(survey, library, classifier, smoothing, alpha, backendType);
+        AbstractResponseManager.putRecord(survey, record);
+        Runner.alpha = alpha;
+        Runner.smoothing = smoothing;
+        // now we're ready to go
+        Thread writer = makeWriter(survey);
+        Thread responder = makeResponseGetter(survey);
+        Thread runner = makeRunner(record);
 //            Thread repl = makeREPL(responseManager, record, runDashboard(ns, record));
-            runner.start();
-            writer.start();
-            responder.start();
+        runner.start();
+        writer.start();
+        responder.start();
 //            repl.start();
-            StringBuilder msg = new StringBuilder(String.format("Target number of valid responses: %s\nTo take the survey, navigate to:"
-                    , record.library.props.get(Parameters.NUM_PARTICIPANTS)));
-            while (record.getAllTasks().length==0) {}
-            for (ITask task : record.getAllTasks())
-                msg.append("\n\t" + surveyPoster.makeTaskURL(responseManager, task));
-            LOGGER.info(msg.toString());
-            System.out.println(msg.toString());
-            runner.join();
-            responder.join();
-            writer.join();
+        StringBuilder msg = new StringBuilder(String.format("Target number of valid responses: %s\nTo take the survey, navigate to:"
+                , record.library.props.get(Parameters.NUM_PARTICIPANTS)));
+        while (record.getAllTasks().length==0) {}
+        for (ITask task : record.getAllTasks())
+            msg.append("\n\t" + surveyPoster.makeTaskURL(responseManager, task));
+        LOGGER.info(msg.toString());
+        System.out.println(msg.toString());
+        runner.join();
+        responder.join();
+        writer.join();
 //            repl.join();
-        } catch (SurveyException se) {
-            System.err.println("Fatal error: " + se.getMessage() + "\nExiting...");
-        }
     }
 
     public static org.eclipse.jetty.server.Server runDashboard(
@@ -502,14 +497,14 @@ public class Runner {
     public static void main(
             String[] args)
             throws IOException,
-            InterruptedException,
-            NoSuchMethodException,
-            IllegalAccessException,
-            InvocationTargetException,
-            ParseException,
-            WebServerException,
-            InstantiationException,
-            ClassNotFoundException
+                   InterruptedException,
+                   NoSuchMethodException,
+                   IllegalAccessException,
+                   InvocationTargetException,
+                   ParseException,
+                   WebServerException,
+                   InstantiationException,
+                   ClassNotFoundException, SurveyException
     {
         ArgumentParser argumentParser = makeArgParser();
         Namespace ns;

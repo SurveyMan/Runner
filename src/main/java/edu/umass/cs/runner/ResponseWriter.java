@@ -39,7 +39,7 @@ public class ResponseWriter {
             s.append(String.format("%s%s", sep, key));
 
         //correlation
-        if (!survey.correlationMap.isEmpty())
+        if (survey.correlationMap != null && !survey.correlationMap.isEmpty())
             s.append(String.format("%s%s", sep, AbstractParser.CORRELATION));
 
         s.append("\r\n");
@@ -110,7 +110,7 @@ public class ResponseWriter {
             }
 
             // add correlated info
-            if (!survey.correlationMap.isEmpty())
+            if (survey.correlationMap != null && !survey.correlationMap.isEmpty())
                 retval.append(String.format("%s%s", sep, survey.getCorrelationLabel(qr.getQuestion())));
 
             retval.append(newline);

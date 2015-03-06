@@ -46,6 +46,8 @@ public abstract class AbstractResponseManager {
             Survey survey,
             Record record)
     {
+        if (survey.source == null)
+            survey.source = survey.sid;
         manager.put(survey.source, record);
     }
 
