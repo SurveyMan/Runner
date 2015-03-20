@@ -6,10 +6,8 @@ import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.survey.Survey;
 import org.apache.commons.lang3.StringUtils;
-import sun.swing.StringUIClientPropertyKey;
 
 import java.io.*;
-import java.security.acl.LastOwnerException;
 import java.util.*;
 
 public class MturkLibrary extends AbstractLibrary {

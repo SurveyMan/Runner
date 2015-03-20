@@ -32,7 +32,6 @@ import net.sourceforge.argparse4j.inf.Argument;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -45,14 +44,36 @@ public class Runner {
 
     public static final Logger LOGGER = LogManager.getLogger(Runner.class.getName());
     private static long timeSinceLastNotice = System.currentTimeMillis();
-    public static KnownBackendType backendType;
-    public static AbstractResponseManager responseManager;
-    public static ISurveyPoster surveyPoster;
-    public static AbstractLibrary library;
-    public static final BoxedBool interrupt = new BoxedBool();
+    public final KnownBackendType backendType;
+    public final AbstractResponseManager responseManager;
+    public final ISurveyPoster surveyPoster;
+    public final AbstractLibrary library;
+    public final Schedule schedule;
+    public final BoxedBool interrupt = new BoxedBool();
     public static final double basePay = 7.25;
-    public static double alpha = 0.05;
-    public static boolean smoothing = false;
+    public final double alpha;
+    public final boolean smoothing;
+    private static final Schedule defaultSchedule = Schedule.FRONT;
+    private static final double defaultAlpha = 0.05;
+    private static final boolean defaultSmoothing = false;
+
+    private Runner(
+            KnownBackendType knownBackendType,
+            AbstractResponseManager abstractResponseManager,
+            ISurveyPoster surveyPoster,
+            AbstractLibrary abstractLibrary,
+            Schedule schedule,
+            double alpha,
+            boolean smoothing)
+    {
+        this.backendType = knownBackendType;
+        this.responseManager = abstractResponseManager;
+        this.surveyPoster = surveyPoster;
+        this.library = abstractLibrary;
+        this.schedule = schedule;
+        this.alpha = alpha;
+        this.smoothing = smoothing;
+    }
 
     public static ArgumentParser makeArgParser()
     {
@@ -82,44 +103,77 @@ public class Runner {
         return argumentParser;
     }
 
-    public static void init(
-            String bt,
+    public static Runner init(
+            KnownBackendType backendType,
+            Schedule schedule,
+            double alpha,
+            boolean smoothing,
             String properties,
             String config)
             throws IOException
     {
         // if it's an unrecognized backend type, it will fail earlier
-        backendType = KnownBackendType.valueOf(bt);
         switch (backendType) {
             case LOCALHOST:
-                responseManager = new LocalResponseManager();
-                surveyPoster = new LocalSurveyPoster();
-                library = new LocalLibrary(properties);
-                break;
+                return new Runner(
+                        backendType,
+                        new LocalResponseManager(),
+                        new LocalSurveyPoster(),
+                        new LocalLibrary(properties),
+                        schedule,
+                        alpha,
+                        smoothing);
             case MTURK:
-                library = new MturkLibrary(properties, config);
-                responseManager = new MturkResponseManager((MturkLibrary) library);
-                surveyPoster = new MturkSurveyPoster();
+                AbstractLibrary mturkLibrary = new MturkLibrary(properties, config);
+                ISurveyPoster surveyPoster = new MturkSurveyPoster();
                 surveyPoster.init(config);
-                break;
+                return new Runner(
+                        backendType,
+                        new MturkResponseManager((MturkLibrary) mturkLibrary),
+                        surveyPoster,
+                        mturkLibrary,
+                        schedule,
+                        alpha,
+                        smoothing);
+            default:
+                throw new RuntimeException("Unknown backend type: "+backendType.toString());
         }
     }
 
-    public static void init(
+    public static Runner init(
+            String bt,
+            String sked,
+            String alfa,
+            String smoofing,
+            String properties,
+            String config)
+            throws IOException
+    {
+        return Runner.init(
+                KnownBackendType.valueOf(bt),
+                Schedule.valueOf(sked),
+                Double.parseDouble(alfa),
+                Boolean.parseBoolean(smoofing),
+                properties,
+                config
+        );
+    }
+
+    public static Runner init(
             String bt)
             throws IOException
     {
-        init(bt, "","");
+        return Runner.init(KnownBackendType.valueOf(bt), defaultSchedule, defaultAlpha, defaultSmoothing, "", "");
     }
 
-    public static void init(
+    public void init(
             KnownBackendType bt)
             throws IOException
     {
         init(bt.name());
     }
 
-    public static int recordAllTasksForSurvey(
+    public int recordAllTasksForSurvey(
             Survey survey)
             throws IOException,
             SurveyException
@@ -150,11 +204,11 @@ public class Runner {
         return responsesAdded;
     }
 
-    public static Thread makeResponseGetter(
+    public Thread makeResponseGetter(
             final Survey survey)
     {
         // grab responses for each incomplete survey in the responsemanager
-        final KnownBackendType backendType = Runner.backendType;
+        final KnownBackendType backendType = this.backendType;
         return new Thread(){
             @Override
             public void run(){
@@ -250,7 +304,7 @@ public class Runner {
         }
     }
 
-    public static Thread makeWriter(
+    public Thread makeWriter(
             final Survey survey)
     {
         //writes hits that correspond to current jobs in memory to their files
@@ -285,7 +339,7 @@ public class Runner {
         };
     }
 
-    public static void run(
+    public void run(
             final Record record)
             throws InterruptedException,
             ClassNotFoundException,
@@ -328,14 +382,15 @@ public class Runner {
         }
     }
 
-    public static Thread makeRunner(
+    public Thread makeRunner(
             final Record record)
     {
+        final Runner runner = this;
         return new Thread(){
             @Override
             public void run() {
                 try {
-                    Runner.run(record);
+                    runner.run(record);
                 } catch (InsufficientFundsException ife) {
                     System.out.println("Insufficient funds in your Mechanical Turk account. Would you like to:\n" +
                         "[1] Add more money to your account and retry\n" +
@@ -365,7 +420,7 @@ public class Runner {
         };
     }
 
-    private static void exit(
+    private void exit(
             AbstractResponseManager abstractResponseManager,
             Record record)
     {
@@ -374,7 +429,7 @@ public class Runner {
         interrupt.setInterrupt(true, "User called exit.");
     }
 
-    public static Thread makeREPL(
+    public Thread makeREPL(
             final AbstractResponseManager abstractResponseManager,
             final Record record,
             final org.eclipse.jetty.server.Server dashboardServer)
@@ -419,58 +474,28 @@ public class Runner {
             }
         };
     }
-    public static void runAll(
-            String s,
-            String sep,
-            Namespace ns)
-            throws InvocationTargetException,
-            IllegalAccessException,
-            NoSuchMethodException,
-            IOException,
-            InterruptedException
-    {
-        Classifier classifier = Classifier.valueOf(((String) ns.get("classifier")).toUpperCase());
-        boolean smoothing = Boolean.valueOf((String) ns.get("smoothing"));
-        double alpha = Double.valueOf((String) ns.get("alpha"));
-        runAll(s, sep, classifier, smoothing, alpha);
-    }
 
-    public static void runAll(
-            String s,
-            String sep,
-            Classifier classifier,
-            boolean smoothing,
-            double alpha)
-            throws InvocationTargetException,
-            IllegalAccessException,
-            NoSuchMethodException,
-            IOException,
-            InterruptedException
+    public void runAll(Survey survey, Classifier classifier, boolean runDashboard)
+            throws InterruptedException
     {
         try {
-            AbstractParser parser;
-            if (s.endsWith("csv"))
-                parser = new CSVParser(new CSVLexer(s, sep));
-            else if (s.endsWith("json"))
-                parser = new JSONParser(Slurpie.slurp(s));
-            else throw new RuntimeException("Input files must have csv or json extensions.");
-            Survey survey = parser.parse();
             AbstractRule.getDefaultRules();
             StaticAnalysis.wellFormednessChecks(survey);
             // create and store the record
             final Record record = new Record(survey, library, classifier, smoothing, alpha, backendType);
             AbstractResponseManager.putRecord(survey, record);
-            Runner.alpha = alpha;
-            Runner.smoothing = smoothing;
             // now we're ready to go
             Thread writer = makeWriter(survey);
             Thread responder = makeResponseGetter(survey);
             Thread runner = makeRunner(record);
-//            Thread repl = makeREPL(responseManager, record, runDashboard(ns, record));
             runner.start();
             writer.start();
             responder.start();
-//            repl.start();
+            Thread repl = null;
+            if (runDashboard) {
+                repl = makeREPL(responseManager, record, runDashboard(record));
+                repl.start();
+            }
             StringBuilder msg = new StringBuilder(String.format("Target number of valid responses: %s\nTo take the survey, navigate to:"
                     , record.library.props.get(Parameters.NUM_PARTICIPANTS)));
             while (record.getAllTasks().length==0) {}
@@ -481,22 +506,41 @@ public class Runner {
             runner.join();
             responder.join();
             writer.join();
-//            repl.join();
+            if (runDashboard)
+                repl.join();
         } catch (SurveyException se) {
             System.err.println("Fatal error: " + se.getMessage() + "\nExiting...");
         }
     }
 
+    public void runAll(
+            String s,
+            String sep,
+            Classifier classifier,
+            boolean runDashboard)
+            throws InvocationTargetException,
+            SurveyException,
+            IllegalAccessException,
+            NoSuchMethodException,
+            IOException, InterruptedException
+    {
+            AbstractParser parser;
+            if (s.endsWith("csv"))
+                parser = new CSVParser(new CSVLexer(s, sep));
+            else if (s.endsWith("json"))
+                parser = new JSONParser(Slurpie.slurp(s));
+            else throw new RuntimeException("Input files must have csv or json extensions.");
+            Survey survey = parser.parse();
+            runAll(survey, classifier, runDashboard);
+    }
+
     public static org.eclipse.jetty.server.Server runDashboard(
-            Namespace ns,
             Record record)
     {
-        if (!Boolean.parseBoolean((String)ns.get("dashboard")))
-            return null;
         IFn require = Clojure.var("clojure.core", "require");
         require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
         IFn run = Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "run");
-        return (org.eclipse.jetty.server.Server) run.invoke(ns, record);
+        return (org.eclipse.jetty.server.Server) run.invoke(record);
     }
 
     public static void main(
@@ -509,26 +553,35 @@ public class Runner {
             ParseException,
             WebServerException,
             InstantiationException,
-            ClassNotFoundException
-    {
+            ClassNotFoundException, SurveyException {
         ArgumentParser argumentParser = makeArgParser();
         Namespace ns;
+        Runner runner;
         try {
             ns = argumentParser.parseArgs(args);
+            runner = Runner.init(
+                    ns.getString("backend"),
+                    ns.getString("schedule"),
+                    ns.getString("alpha"),
+                    ns.getString("smoothing"),
+                    ns.getString("properties"),
+                    ns.getString("config"));
 
-            init(ns.getString("backend"), ns.getString("properties"), ns.getString("config"));
-
-            if (backendType.equals(KnownBackendType.LOCALHOST))
+            if (runner.backendType.equals(KnownBackendType.LOCALHOST))
                 Server.startServe();
 
             AbstractLibrary.dashboardDump(ns);
 
-            if (backendType.equals(KnownBackendType.NONE))
-                runDashboard(ns, Record.deserializeLatestRecord((String) ns.get("record")));
+            if (runner.backendType.equals(KnownBackendType.NONE))
+                runDashboard(Record.deserializeLatestRecord((String) ns.get("record")));
             else
-                runAll(ns.getString("survey"), ns.getString("separator"), ns);
+                runner.runAll(
+                        ns.getString("survey"),
+                        ns.getString("separator"),
+                        Classifier.valueOf(ns.getString("classifier")),
+                        Boolean.parseBoolean(ns.getString("dashboard")));
 
-            if (backendType.equals(KnownBackendType.LOCALHOST))
+            if (runner.backendType.equals(KnownBackendType.LOCALHOST))
                 Server.endServe();
 
             String msg = String.format("Shutting down. Execute this program with args %s to repeat.", Arrays.toString(args));

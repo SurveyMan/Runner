@@ -1,12 +1,15 @@
 (ns edu.umass.cs.runner.dashboard.Dashboard
   (:gen-class
     :name edu.umass.cs.runner.dashboard.Dashboard
-    :methods [#^{:static true} [run [net.sourceforge.argparse4j.inf.Namespace] void]])
-  (:import net.sourceforge.argparse4j.inf.Namespace [edu.umass.cs.surveyman.qc QCMetrics]
-           [edu.umass.cs.runner.system BoxedBool])
-  (:import edu.umass.cs.surveyman.utils.Slurpie)
-  (:import edu.umass.cs.runner.Record)
-  (:import edu.umass.cs.runner.system.Parameters)
+    :methods [#^{:static true} [run [edu.umass.cs.runner.Record] void]])
+  (:import [edu.umass.cs.runner Record]
+           [edu.umass.cs.runner.system BoxedBool Parameters]
+           [edu.umass.cs.runner.system.backend KnownBackendType]
+           [edu.umass.cs.surveyman.qc Classifier QCMetrics]
+           [edu.umass.cs.surveyman.survey Survey]
+           [edu.umass.cs.surveyman.utils Slurpie]
+           net.sourceforge.argparse4j.inf.Namespace
+           )
   (:use ring.adapter.jetty)
   (:use ring.middleware.params)
   (:use ring.util.codec)
@@ -46,15 +49,15 @@
                   (let [item (last (clojure.string/split query-string  #"/"))]
                     (println item)
                     (condp = item
-                      "survey_data" (json/write-str {"survey" (.get @runner-args "survey")
-                                                     "backend" (.get @runner-args "backend")
+                      "survey_data" (json/write-str {"survey" (:survey @runner-args)
+                                                     "backend" (:backend @runner-args)
                                                      "targetresponses" (-> @record-data
                                                                          (.library)
                                                                          (.props)
                                                                          (.get Parameters/NUM_PARTICIPANTS)
                                                                          )
                                                      "expectedcost" (.expectedCost @record-data)
-                                                     "classificationmethod" (.get @runner-args "classifier")
+                                                     "classificationmethod" (:classifier @runner-args)
                                                      "record-pointer" (System/identityHashCode @record-data)
                                                      })
                       "response_data" (.jsonizeResponses @record-data)
@@ -67,17 +70,20 @@
   )
 
 (defn run
-  [^Namespace ns ^Record record]
-  (reset! runner-args ns)
+  [^Record record]
   (reset! record-data record)
+  (swap! runner-args assoc
+    :survey (.survey record)
+    :backend (.backend record)
+    :classifier (.classifier record))
   (ring.adapter.jetty/run-jetty
     handler
     {:port PORT :join? false})
   )
 
 (defn -run
-  [^Namespace ns ^Record record]
-  (run ns)
+  [^Record record]
+  (run record)
   )
 
 (defn -main
