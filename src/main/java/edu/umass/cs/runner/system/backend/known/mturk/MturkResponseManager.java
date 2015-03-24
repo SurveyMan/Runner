@@ -418,6 +418,7 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
+    @Override
     public int addResponses(
             Survey survey,
             ITask task)

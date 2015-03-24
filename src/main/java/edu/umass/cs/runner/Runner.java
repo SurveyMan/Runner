@@ -250,20 +250,6 @@ public class Runner {
         };
     }
 
-    public static boolean stillLive(
-            Survey survey)
-            throws IOException,
-            SurveyException,
-            ClassNotFoundException,
-            IllegalAccessException,
-            InstantiationException
-    {
-        Record record = AbstractResponseManager.getRecord(survey);
-        assert record.getNumBotResponses() + record.getNumValidResponses() == record.getAllResponses().size();
-        return record!=null &&
-                record.getNumValidResponses() < Integer.parseInt(
-                record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
-    }
 
     public static void writeResponses(
             Survey survey,
@@ -360,7 +346,7 @@ public class Runner {
                 if (!interrupt.getInterrupt()) {
                     surveyPoster.postSurvey(responseManager, record);
                 }
-            } while (stillLive(survey));
+            } while (surveyPoster.stillLive(survey));
             Object foo = new Object(){};
             interrupt.setInterrupt(true, String.format("Target goal met in %s.%s"
                     , foo.getClass().getEnclosingClass().getName()

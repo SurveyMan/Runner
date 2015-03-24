@@ -1,16 +1,16 @@
 package edu.umass.cs.runner.system.backend.known.mturk;
 
 import com.amazonaws.mturk.requester.*;
-import edu.umass.cs.runner.system.backend.AbstractResponseManager;
+import edu.umass.cs.runner.system.backend.*;
 import edu.umass.cs.runner.Record;
 import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.system.BoxedBool;
-import edu.umass.cs.runner.system.backend.ISurveyPoster;
-import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.runner.system.Parameters;
 import edu.umass.cs.runner.system.backend.known.mturk.generators.MturkXML;
+import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.*;
 
@@ -25,6 +25,30 @@ public class MturkSurveyPoster implements ISurveyPoster {
 
     @Override
     public void init(String configURL){
+    }
+
+    @Override
+    public boolean stillLive(Survey survey, Schedule schedule) {
+
+        Record record = null;
+        try {
+            record = AbstractResponseManager.getRecord(survey);
+        } catch (IOException e) {
+            Runner.LOGGER.warn(e);
+            return false;
+        } catch (SurveyException e) {
+            Runner.LOGGER.warn(e);
+            return false;
+        }
+
+        if (record==null)
+            return false;
+
+        int targetN = Integer.parseInt(
+                record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
+
+        return record.getNumValidResponses() < targetN &&
+                (!schedule.equals(Schedule.ADAPT) || !AdaptiveScheduler.detectBias(record));
     }
 
     @Override
