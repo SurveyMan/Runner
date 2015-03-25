@@ -163,6 +163,8 @@ public class Record implements Serializable {
                    n;
         } catch (SurveyException se) {
             LOGGER.warn(se);
+        } catch (Exception e) {
+            System.out.println(StringUtils.join(this.library.props.propertyNames(), "\n"));
         }
         return 0.0;
     }

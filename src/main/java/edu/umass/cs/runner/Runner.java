@@ -334,6 +334,7 @@ public class Runner {
         return new Thread(){
             @Override
             public void run() {
+                Scanner scanner = new Scanner(System.in);
                 try {
                     Runner.run(record);
                 } catch (InsufficientFundsException ife) {
@@ -343,7 +344,7 @@ public class Runner {
                     int i = 0;
                     while(i!=1 && i!=2){
                         System.out.println("Type number corresponding to preference: ");
-                        i = new Scanner(System.in).nextInt();
+                        i = scanner.nextInt();
                         if (i==2)
                             System.exit(1);
                     }
@@ -360,6 +361,8 @@ public class Runner {
                     e.printStackTrace();
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
+                } finally {
+                    scanner.close();
                 }
             }
         };

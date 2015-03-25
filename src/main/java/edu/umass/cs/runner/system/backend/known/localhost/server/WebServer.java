@@ -37,7 +37,7 @@ public class WebServer {
     }
 
     public int getPort() {
-        return server.getConnectors()[0].getPort();
+        return this.server.getConnectors()[0].getPort();
     }
 
     public static String getHostName() {
@@ -54,7 +54,6 @@ public class WebServer {
     }
 
     public static WebServer start(int port, WebHandler handler) throws WebServerException {
-        int retries = 5;
         int currentPort = port;
         Server server;
         BindException e;
@@ -67,14 +66,13 @@ public class WebServer {
                 e = null;
             } catch (BindException exception) {
                 LocalResponseManager.chill(5);
-                retries--;
                 currentPort++;
                 e = exception;
                 Runner.LOGGER.warn(e.getMessage());
             } catch (Exception ex) {
                 throw new WebServerException(ex);
             }
-        } while (retries > 0 && e != null);
+        } while (e != null);
 
         return new WebServer(server);
     }
