@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import edu.umass.cs.runner.system.backend.AbstractLibrary;
+import edu.umass.cs.runner.system.backend.KnownBackendType;
 import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.survey.Component;
 import edu.umass.cs.surveyman.survey.HTMLComponent;
@@ -15,20 +16,21 @@ public class JS {
     
     private static final Logger LOGGER = Logger.getLogger("system.mturk");
 
-    private static String makeJS(
+    private static String makePreview(
             Component preview)
             throws SurveyException,
             IOException
     {
         String loadPreview;
         if (preview instanceof HTMLComponent)
-            loadPreview = String.format(" var loadPreview = function () { $('#preview').load('%s'); }; "
+            loadPreview = String.format(" $('#preview').append('%s'); "
                     , ((HTMLComponent) preview).data);
-        else loadPreview = " var loadPreview = function () {}; ";
+        else loadPreview = "";
         return loadPreview;
     }
 
     public static String getJSString(
+            KnownBackendType knownBackendType,
             Survey survey,
             Component preview)
             throws SurveyException,
@@ -36,8 +38,16 @@ public class JS {
     {
         String js = "";
         try {
-            js = makeJS(preview) + String.format("SurveyMan.display.ready(%s, function() { %s });",
-                    survey.jsonize(), Slurpie.slurp(AbstractLibrary.JSSKELETON, true));
+            js = String.format("SurveyMan.display.ready(" +
+                            "%b, " +
+                            "%s, " +
+                            "function () { %s }, " +
+                            "function() { %s }" +
+                            ");",
+                    knownBackendType.equals(KnownBackendType.MTURK),
+                    survey.jsonize(),
+                    makePreview(preview),
+                    Slurpie.slurp(AbstractLibrary.JSSKELETON, true));
         } catch (FileNotFoundException ex) {
             LOGGER.fatal(ex);
             ex.printStackTrace();

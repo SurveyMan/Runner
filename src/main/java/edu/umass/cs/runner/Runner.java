@@ -25,6 +25,7 @@ import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
 import edu.umass.cs.surveyman.input.json.JSONParser;
 import edu.umass.cs.surveyman.qc.Classifier;
+import edu.umass.cs.surveyman.survey.Question;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -32,7 +33,6 @@ import net.sourceforge.argparse4j.inf.Argument;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -427,11 +427,11 @@ public class Runner {
                    IllegalAccessException,
                    NoSuchMethodException,
                    IOException,
-                   InterruptedException, SurveyException
-    {
+                   InterruptedException, SurveyException {
         Classifier classifier = Classifier.valueOf(((String) ns.get("classifier")).toUpperCase());
         boolean smoothing = Boolean.valueOf((String) ns.get("smoothing"));
         double alpha = Double.valueOf((String) ns.get("alpha"));
+        boolean breakoff = Boolean.valueOf((String) ns.get("breakoff"));
         AbstractParser parser;
         if (s.endsWith("csv"))
             parser = new CSVParser(new CSVLexer(s, sep));
@@ -439,6 +439,10 @@ public class Runner {
             parser = new JSONParser(Slurpie.slurp(s));
         else throw new RuntimeException("Input files must have csv or json extensions.");
         Survey survey = parser.parse();
+        // Kind of a hack.
+        if (!breakoff)
+            for (Question q : survey.questions)
+                q.permitBreakoff = false;
         AbstractRule.getDefaultRules();
         StaticAnalysis.wellFormednessChecks(survey);
         runAll(survey, classifier, smoothing, alpha);
