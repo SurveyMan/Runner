@@ -16,7 +16,7 @@
 
 (def runner-args (atom nil))
 (def record-data (atom nil))
-(def PORT 9000)
+(def PORT (atom 9000))
 
 (defn get-content-type-for-request
   [uri]
@@ -70,9 +70,15 @@
   [^Namespace ns ^Record record]
   (reset! runner-args ns)
   (reset! record-data record)
-  (ring.adapter.jetty/run-jetty
-    handler
-    {:port PORT :join? false})
+  (try
+    (let [dashboardServer (ring.adapter.jetty/run-jetty
+                            handler
+                            {:port @PORT :join? false})]
+      (println (str "Dashboard server running at http://localhost:" @PORT "/dashboard/Dashboard.html"))
+      dashboardServer)
+    (catch java.net.BindException e
+      (swap! PORT (inc @PORT))
+      (run ns record)))
   )
 
 (defn -run
