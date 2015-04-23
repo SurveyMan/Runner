@@ -1,0 +1,2 @@
+responseid,workerid,surveyid,questionid,questiontext,questionpos,optionid,optiontext,optionpos,VOTIFY_LINK
+a9,,survey1,q_2_1,"Have you even bought and returned something that you only ever intended to use one time?",0,comp_2_2,"Yes",2,"http://votifi.com/polls/3320"

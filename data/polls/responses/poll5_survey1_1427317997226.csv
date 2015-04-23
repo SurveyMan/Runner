@@ -1,0 +1,2 @@
+responseid,workerid,surveyid,questionid,questiontext,questionpos,optionid,optiontext,optionpos,VOTIFY_LINK
+a11,,survey1,q_2_1,"If you were a teacher would you allow students to use comptuers, tablets or other connected devices during class?",0,comp_3_2,"No - they are mostly just a distraction",1,"http://votifi.com/polls/3341"

@@ -1,0 +1,2 @@
+responseid,workerid,surveyid,questionid,questiontext,questionpos,optionid,optiontext,optionpos,VOTIFY_LINK
+a6,,survey1,q_2_1,"When sensitive, personal photos stored in the cloud get leaked, who is primaril to blame?",0,comp_4_2,"The hackers",1,"http://votifi.com/polls/3335"

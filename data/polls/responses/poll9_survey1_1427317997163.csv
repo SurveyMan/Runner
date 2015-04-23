@@ -1,0 +1,2 @@
+responseid,workerid,surveyid,questionid,questiontext,questionpos,optionid,optiontext,optionpos,VOTIFY_LINK
+a12,,survey1,q_2_1,"Should airlines ban devices that allow passengers to prevent the seat in front of them from reclining?",0,comp_2_2,"Yes",1,"http://votifi.com/polls/3319"

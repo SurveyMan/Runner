@@ -1,0 +1,2 @@
+responseid,workerid,surveyid,questionid,questiontext,questionpos,optionid,optiontext,optionpos,VOTIFY_LINK
+a13,,survey1,q_2_1,"Assuming the same pay, benefits, and hours, would you rather work/have worked for a big company or a small company?",0,comp_3_2,"Small",2,"http://www.votifi.com/polls/3312"
