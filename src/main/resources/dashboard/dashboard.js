@@ -1,7 +1,8 @@
 (function () {
     $.getJSON("?json/survey_data", function (data) {
         console.log(data);
-        $("#surveyfilename").append(data["survey"]);
+        survey = JSON.parse(data["survey"]);
+        $("#surveyfilename").append(survey.filename);
         $("#backend").append(data["backend"]);
         $("#targetresponses").append(data["targetresponses"]);
         $("#expectedcost").append("$" + data["expectedcost"]);

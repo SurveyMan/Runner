@@ -409,7 +409,8 @@ public class Runner {
                     } else if (choice==stopDashboardChoice) {
                         LOGGER.info("User cancelling dashboard service.");
                         try {
-                            dashboardServer.stop();
+                            if (dashboardServer!=null)
+                                dashboardServer.stop();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -422,6 +423,7 @@ public class Runner {
             }
         };
     }
+
     public static void runAll(
             String s,
             String sep,
@@ -435,6 +437,7 @@ public class Runner {
         boolean smoothing = Boolean.valueOf((String) ns.get("smoothing"));
         double alpha = Double.valueOf((String) ns.get("alpha"));
         boolean breakoff = Boolean.valueOf((String) ns.get("breakoff"));
+        boolean runDashboardp = Boolean.valueOf((String) ns.get("dashboard"));
         AbstractParser parser;
         if (s.endsWith("csv"))
             parser = new CSVParser(new CSVLexer(s, sep));
@@ -448,14 +451,15 @@ public class Runner {
                 q.permitBreakoff = false;
         AbstractRule.getDefaultRules();
         StaticAnalysis.wellFormednessChecks(survey);
-        runAll(survey, classifier, smoothing, alpha);
+        runAll(survey, classifier, smoothing, alpha, runDashboardp);
     }
 
     public static void runAll(
             Survey survey,
             Classifier classifier,
             boolean smoothing,
-            double alpha)
+            double alpha,
+            boolean runDashboardp)
             throws InvocationTargetException,
             IllegalAccessException,
             NoSuchMethodException,
@@ -471,11 +475,11 @@ public class Runner {
         Thread writer = makeWriter(survey);
         Thread responder = makeResponseGetter(survey);
         Thread runner = makeRunner(record);
-//            Thread repl = makeREPL(responseManager, record, runDashboard(ns, record));
+        Thread repl = makeREPL(responseManager, record, runDashboardp ? runDashboard(record) : null);
         runner.start();
         writer.start();
         responder.start();
-//            repl.start();
+        repl.start();
         StringBuilder msg = new StringBuilder(String.format("Target number of valid responses: %s\nTo take the survey, navigate to:"
                 , record.library.props.get(Parameters.NUM_PARTICIPANTS)));
         while (record.getAllTasks().length==0) {}
@@ -486,19 +490,20 @@ public class Runner {
         runner.join();
         responder.join();
         writer.join();
-//            repl.join();
+        repl.join();
     }
 
     public static org.eclipse.jetty.server.Server runDashboard(
-            Namespace ns,
             Record record)
     {
-        if (!Boolean.parseBoolean((String)ns.get("dashboard")))
-            return null;
+        // TODO(etosch): make this more java-like in the future.
         IFn require = Clojure.var("clojure.core", "require");
         require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
-        IFn run = Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "run");
-        return (org.eclipse.jetty.server.Server) run.invoke(ns, record);
+        IFn run = Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "-run");
+        System.out.println(String.format(
+                "To monitor the survey, navigate to:\n\thttp://localhost:%d/src/main/resources/debugger/Debug.html",
+                (Long) Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "-getPort").invoke()));
+        return (org.eclipse.jetty.server.Server) run.invoke(record);
     }
 
     public static void main(
@@ -525,8 +530,10 @@ public class Runner {
 
             AbstractLibrary.dashboardDump(ns);
 
-            if (backendType.equals(KnownBackendType.NONE))
-                runDashboard(ns, Record.deserializeLatestRecord((String) ns.get("record")));
+            boolean runDashboard = Boolean.parseBoolean((String) ns.get("dashboard"));
+
+            if (backendType.equals(KnownBackendType.NONE) && runDashboard)
+                runDashboard(Record.deserializeLatestRecord((String) ns.get("record")));
             else
                 runAll(ns.getString("survey"), ns.getString("separator"), ns);
 

@@ -1,8 +1,11 @@
 (ns edu.umass.cs.runner.dashboard.Dashboard
   (:gen-class
     :name edu.umass.cs.runner.dashboard.Dashboard
-    :methods [#^{:static true} [run [net.sourceforge.argparse4j.inf.Namespace] void]])
-  (:import net.sourceforge.argparse4j.inf.Namespace [edu.umass.cs.surveyman.qc QCMetrics]
+    :prefix "-"
+    :main false
+    :methods [#^{:static true} [run [edu.umass.cs.runner.Record] void]
+                               [getPort [] Integer]])
+  (:import [edu.umass.cs.surveyman.qc QCMetrics]
            [edu.umass.cs.runner.system BoxedBool])
   (:import edu.umass.cs.surveyman.utils.Slurpie)
   (:import edu.umass.cs.runner.Record)
@@ -14,7 +17,6 @@
   (:require [clojure.data.json :as json])
   )
 
-(def runner-args (atom nil))
 (def record-data (atom nil))
 (def PORT (atom 9000))
 
@@ -46,15 +48,15 @@
                   (let [item (last (clojure.string/split query-string  #"/"))]
                     (println item)
                     (condp = item
-                      "survey_data" (json/write-str {"survey" (.get @runner-args "survey")
-                                                     "backend" (.get @runner-args "backend")
+                      "survey_data" (json/write-str {"survey" (.jsonize (.survey @record-data))
+                                                     "backend" (.name (.backendType @record-data))
                                                      "targetresponses" (-> @record-data
                                                                          (.library)
                                                                          (.props)
                                                                          (.get Parameters/NUM_PARTICIPANTS)
                                                                          )
                                                      "expectedcost" (.expectedCost @record-data)
-                                                     "classificationmethod" (.get @runner-args "classifier")
+                                                     "classificationmethod" (.name (.classifier @record-data))
                                                      "record-pointer" (System/identityHashCode @record-data)
                                                      })
                       "response_data" (.jsonizeResponses @record-data)
@@ -67,8 +69,7 @@
   )
 
 (defn run
-  [^Namespace ns ^Record record]
-  (reset! runner-args ns)
+  [^Record record]
   (reset! record-data record)
   (try
     (let [dashboardServer (ring.adapter.jetty/run-jetty
@@ -78,12 +79,14 @@
       dashboardServer)
     (catch java.net.BindException e
       (swap! PORT (inc @PORT))
-      (run ns record)))
+      (run record)))
   )
 
+(defn -getPort [] @PORT)
+
 (defn -run
-  [^Namespace ns ^Record record]
-  (run ns)
+  [^Record record]
+  (run record)
   )
 
 (defn -main

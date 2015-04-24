@@ -24,7 +24,7 @@ public class JudgementTaskRunner {
         Runner.init(KnownBackendType.LOCALHOST);
         Server.startServe();
         Survey survey = JudgementTask.makeSurvey();
-        Runner.runAll(survey, Classifier.LOG_LIKELIHOOD, false, 0.05);
+        Runner.runAll(survey, Classifier.LOG_LIKELIHOOD, false, 0.05, true);
         Server.endServe();
     }
 }
