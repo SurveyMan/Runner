@@ -57,6 +57,8 @@ public class SystemTest extends TestLog {
             }
         } catch (SurveyException se) {
             LOGGER.warn(se);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
