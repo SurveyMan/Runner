@@ -78,6 +78,9 @@ public class MturkLibrary extends AbstractLibrary {
             fnfe.printStackTrace();
         } catch (IOException io) {
             io.printStackTrace();
+        } finally {
+            if (props == null)
+                props = new Properties();
         }
 
         Runner.LOGGER.info(props.toString());
