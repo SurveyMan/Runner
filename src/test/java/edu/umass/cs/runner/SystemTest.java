@@ -49,9 +49,11 @@ public class SystemTest extends TestLog {
 
     @Test
     public void testXMLGenerator() throws Exception {
+        String currentFile = "";
         try{
             for (int i = 0 ; i < testsFiles.length ; i++) {
-                CSVParser csvParser = new CSVParser(new CSVLexer(testsFiles[i], String.valueOf(separators[i])));
+                currentFile = testsFiles[i];
+                CSVParser csvParser = new CSVParser(new CSVLexer(currentFile, String.valueOf(separators[i])));
                 MturkXML.getXMLString(csvParser.parse());
                 LOGGER.info(testsFiles[i]+" generated IHTML successfully.");
             }
@@ -59,6 +61,8 @@ public class SystemTest extends TestLog {
             LOGGER.warn(se);
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("PROBLEMATIC FILE: " + currentFile);
+            throw e;
         }
     }
 
