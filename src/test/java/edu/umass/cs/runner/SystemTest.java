@@ -75,8 +75,9 @@ public class SystemTest extends TestLog {
                 Survey survey = csvParser.parse();
                 RandomRespondent rr = new RandomRespondent(survey, RandomRespondent.AdversaryType.UNIFORM);
                 String headers = ResponseWriter.outputHeaders(survey, new ArrayList<String>());
-                String output = ResponseWriter.outputSurveyResponse(survey, new SurveyResponse(rr.getResponse()));
-                new SurveyResponse("").readSurveyResponses(survey, new StringReader(headers + output));
+                String output = ResponseWriter.outputSurveyResponse(survey,
+                        new SurveyResponse((SurveyResponse) rr.getResponse()));
+                new SurveyResponse(survey, "").readSurveyResponses(survey, new StringReader(headers + output));
             } catch (SurveyException se) {
                 if (super.outcome[i])
                     throw se;

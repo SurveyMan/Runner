@@ -206,8 +206,7 @@ public class Runner {
     {
         Record record = AbstractResponseManager.getRecord(survey);
         assert record.getNumBotResponses() + record.getNumValidResponses() == record.getAllResponses().size();
-        return record!=null &&
-                record.getNumValidResponses() < Integer.parseInt(
+        return record.getNumValidResponses() < Integer.parseInt(
                 record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
     }
 
@@ -218,7 +217,7 @@ public class Runner {
         assert record.getAllResponses().size() > 0 :
                 "Should not be calling Runner.writeResponses if we have not recieved any responses. ";
         for (SurveyResponse sr : record.getAllResponses()) {
-            assert sr.getAllResponses().size() > 0 : String.format(
+            assert sr.resultsAsMap().size() > 0 : String.format(
                     "Respondent %s should have answered at least 1 question.",
                     sr.getSrid());
             if (!sr.isRecorded()) {

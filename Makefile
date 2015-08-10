@@ -4,6 +4,14 @@ projectdir := $(shell pwd)
 
 .PHONY := clean compile test test_travis package deps
 
+package: compile
+	mvn package -DskipTests
+	unzip lib/aws-mturk-clt.jar
+	unzip lib/aws-mturk-dataschema.jar
+	unzip lib/aws-mturk-wsdl.jar
+	unzip lib/java-aws-mturk.jar
+	jar uf runner.jar com/*
+
 clean:
 	rm -rf ~/surveyman/.metadata
 	rm -rf lib
@@ -17,14 +25,6 @@ test: compile
 
 test_travis : compile
 	mvn -Ptravis test
-
-package: compile
-	mvn package -DskipTests
-	unzip lib/aws-mturk-clt.jar
-	unzip lib/aws-mturk-dataschema.jar
-	unzip lib/aws-mturk-wsdl.jar
-	unzip lib/java-aws-mturk.jar
-	jar uf runner.jar com/*
 
 deps: lib/java-aws-mturk.jar 
 	mvn install:install-file $(mvnargs) -Dfile=$(projectdir)/lib/java-aws-mturk.jar -DartifactId=java-aws-mturk

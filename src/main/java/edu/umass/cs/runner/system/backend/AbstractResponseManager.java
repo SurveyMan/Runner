@@ -3,7 +3,7 @@ package edu.umass.cs.runner.system.backend;
 import edu.umass.cs.runner.Record;
 import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.runner.system.exceptions.RecordNotFoundException;
-import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
+import edu.umass.cs.surveyman.analyses.SurveyResponse;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 
@@ -28,9 +28,10 @@ public abstract class AbstractResponseManager {
     public abstract ITask getTask(String taskid);
     public abstract boolean makeTaskUnavailable(ITask task);
     public abstract boolean makeTaskAvailable(String taskId, Record r);
-    public abstract void awardBonus(double amount, AbstractSurveyResponse sr, Survey survey);
+    public abstract void awardBonus(double amount, SurveyResponse sr, Survey survey);
     public abstract ITask makeTaskForId(Record record, String taskid);
-    public abstract AbstractSurveyResponse parseResponse (String workerId, String ansXML, Survey survey, Record r, Map<String, String> otherValues) throws SurveyException;
+    public abstract SurveyResponse parseResponse (String workerId, String ansXML, Survey survey, Record r,
+                                                  Map<String, String> otherValues) throws SurveyException;
 
     public static Record getRecord(
             Survey survey)

@@ -3,10 +3,10 @@
     :doc "Utilities for manipulating survey responses for data analysis."}
   edu.umass.cs.runner.utils.response-util
   (:import
-    (edu.umass.cs.surveyman.analyses AbstractSurveyResponse IQuestionResponse OptTuple)
+    (edu.umass.cs.surveyman.analyses SurveyResponse IQuestionResponse OptTuple)
     (edu.umass.cs.surveyman.input AbstractParser)
     (edu.umass.cs.surveyman.qc RandomRespondent RandomRespondent$AdversaryType QCMetrics)
-    (edu.umass.cs.surveyman.survey Survey Question Component)
+    (edu.umass.cs.surveyman.survey Survey Question SurveyDatum)
     (java.util List Map))
   )
 
@@ -35,8 +35,8 @@
 
 
 (defn get-true-responses
-  "Takes an AbstractSurveyResponse and removes \"responses\" that are actually ad hoc metadata tagged with the id \"q_-1_-1\". "
-  [^AbstractSurveyResponse sr]
+  "Takes an SurveyResponse and removes \"responses\" that are actually ad hoc metadata tagged with the id \"q_-1_-1\". "
+  [^SurveyResponse sr]
   (try
     (->> (.getResponses sr)
       (remove #(= "q_-1_-1" (.quid (.getQuestion %))))
@@ -51,7 +51,7 @@
   "Takes each question and returns a map from questions to a list of question responses.
    The survey response id is attached as metadata."
   [surveyResponses]
-  (let [answers (for [^AbstractSurveyResponse sr surveyResponses]
+  (let [answers (for [^SurveyResponse sr surveyResponses]
                   (apply merge
                     (for [^IQuestionResponse qr (.getResponses sr)]
                       {(.getQuestion qr) (list (Response. (.srid sr)
@@ -75,7 +75,7 @@
 
 (defn getOrdered
   "Returns an integer corresponding to the ranked order of the option."
-  [^Question q ^Component opt]
+  [^Question q ^SurveyDatum opt]
   (let [m (convertToOrdered q)]
     (assert (contains? m (.getCid opt))
       (clojure.string/join "\n" (list (.getCid opt) m
@@ -106,7 +106,7 @@
 
 (defn get-ids-that-answered-option
   "Returns the set of srids corresponding to respondents who answered a given question with a specific response."
-  [ansMap ^Question q1 ^Component opt1]
+  [ansMap ^Question q1 ^SurveyDatum opt1]
   (->> (ansMap q1)
     (filter #(= opt1 (first (:opts %))))
     (flatten)
@@ -117,7 +117,7 @@
 (defn opt-list-by-index
   "Returns the option list for a question ordered by how it was entered in the csv."
   [^Question q]
-  (sort #(< (.getSourceRow ^Component %1) (.getSourceRow ^Component %2)) (vals (.options q)))
+  (sort #(< (.getSourceRow ^SurveyDatum %1) (.getSourceRow ^SurveyDatum %2)) (vals (.options q)))
   )
 
 (defmulti get-last-q #(type %))
@@ -133,7 +133,7 @@
     (.getQuestion))
   )
 
-(defmethod get-last-q AbstractSurveyResponse [sr]
+(defmethod get-last-q SurveyResponse [sr]
   (get-last-q (.getResponses sr))
   )
 
@@ -149,11 +149,11 @@
   "Returns a map from quid to a map of options to counts."
   [responses]
   (reduce #(merge-with (fn [m1 m2] (merge-with + m1 m2)) %1 %2)
-    (for [^AbstractSurveyResponse sr responses]
+    (for [^SurveyResponse sr responses]
       (apply merge (for [^IQuestionResponse qr (get-true-responses sr)]
                      {(.quid (.getQuestion qr))
                       (apply merge
-                        (for [^Component c (map #(.c ^OptTuple %) (.getOpts qr))]
+                        (for [^SurveyDatum c (map #(.c ^OptTuple %) (.getOpts qr))]
                           {(.getCid c) 1}
                           )
                         )
@@ -177,8 +177,8 @@
 
 
 (defn get-variant
-  "Returns the Question answered in the AbstractSurveyResponse that is equivalent to the input Question."
-  [^Question q ^AbstractSurveyResponse sr]
+  "Returns the Question answered in the SurveyResponse that is equivalent to the input Question."
+  [^Question q ^SurveyResponse sr]
   (when-not (= (.quid q) AbstractParser/CUSTOM_ID)
     (let [variants (set (.getVariants q))]
       (->> (.getResponses sr)
@@ -192,8 +192,8 @@
 
 
 (defn survey-response-contains-answer
-  "Returns boolean for whether a particular AbstractSurveyResponse contains a question that has this Component as an answer."
-  [^AbstractSurveyResponse sr ^Component c]
+  "Returns boolean for whether a particular SurveyResponse contains a question that has this SurveyDatum as an answer."
+  [^SurveyResponse sr ^SurveyDatum c]
   (contains? (set (flatten (map (fn [^IQuestionResponse qr] (map #(.c %) (.getOpts qr))) (get-true-responses sr))))
     c
     )

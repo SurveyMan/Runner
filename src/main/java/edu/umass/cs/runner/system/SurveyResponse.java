@@ -3,27 +3,21 @@ package edu.umass.cs.runner.system;
 import java.io.*;
 import java.util.*;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
 import edu.umass.cs.runner.Record;
-import edu.umass.cs.runner.system.generators.JS;
 import edu.umass.cs.runner.system.output.AnswerQuad;
 import edu.umass.cs.runner.system.output.AnswerStruct;
 import edu.umass.cs.runner.system.output.SurveyResponseStruct;
-import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
 import edu.umass.cs.surveyman.analyses.ISurveyResponseReader;
 import edu.umass.cs.surveyman.analyses.OptTuple;
-import edu.umass.cs.surveyman.input.json.JSONParser;
-import edu.umass.cs.surveyman.survey.Component;
 import edu.umass.cs.surveyman.survey.Question;
-import edu.umass.cs.surveyman.survey.StringComponent;
+import edu.umass.cs.surveyman.survey.StringDatum;
 import edu.umass.cs.surveyman.survey.Survey;
+import edu.umass.cs.surveyman.survey.SurveyDatum;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import edu.umass.cs.surveyman.utils.Gensym;
 import org.apache.log4j.Logger;
 import org.dom4j.DocumentException;
-import org.eclipse.jetty.util.ajax.JSON;
 import org.json.JSONObject;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.CsvMapReader;
@@ -41,7 +35,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 
-public class SurveyResponse extends AbstractSurveyResponse implements ISurveyResponseReader {
+public class SurveyResponse extends edu.umass.cs.surveyman.analyses.SurveyResponse implements ISurveyResponseReader {
 
     public static final Logger LOGGER = Logger.getLogger("survey");
     public static final Gensym gensym = new Gensym("sr");
@@ -49,7 +43,6 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
 
     protected String srid = gensym.next();
     public Record record;
-    private String workerId;
 
     /** otherValues is a map of the key value pairs that are not necessary for quality control,
      *  but are returned by the service. They should be pushed through the system
@@ -58,32 +51,31 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
     public  Map<String, String> otherValues = new HashMap<String, String>();
 
     // constructor without all the Mechanical Turk stuff (just for testing)
-    public SurveyResponse(String wID){
-        this.workerId = wID;
+    public SurveyResponse(Survey survey, String wID){
+        super(survey);
         this.srid = wID;
     }
 
-    public SurveyResponse(AbstractSurveyResponse abstractSurveyResponse) {
-        this.srid = abstractSurveyResponse.getSrid();
-        this.workerId = abstractSurveyResponse.getWorkerId();
+    public SurveyResponse(SurveyResponse surveyResponse) {
+        this(surveyResponse.getSurvey(), surveyResponse.getSrid());
     }
 
     @Override
     public String getSrid()
     {
-        return this.workerId;
+        return this.getSrid();
     }
 
     public SurveyResponse (Survey s, String workerId, String xmlAns, Record record, Map<String, String> ov)
             throws SurveyException, DocumentException, IOException, SAXException, ParserConfigurationException {
-        this.workerId = workerId;
+        this(s, workerId);
         this.record = record;
         this.otherValues.putAll(ov);
         this.setResponses(parse(s, xmlAns, ov));
     }
 
     @Override
-    public boolean surveyResponseContainsAnswer(List<Component> components) {
+    public boolean surveyResponseContainsAnswer(List<SurveyDatum> components) {
         for (IQuestionResponse qr : this.getAllResponses()) {
             for (OptTuple optTuple : qr.getOpts()) {
                 if (components.contains(optTuple.c))
@@ -97,16 +89,16 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
     public Map<String,IQuestionResponse> resultsAsMap() {
         HashMap<String,IQuestionResponse> res = new HashMap<String, IQuestionResponse>();
         for(IQuestionResponse resp : this.getAllResponses()) {
-            assert resp.getQuestion().data!=null : resp.getQuestion().quid;
-            res.put(resp.getQuestion().quid, resp);
+            assert resp.getQuestion().data!=null : resp.getQuestion().id;
+            res.put(resp.getQuestion().id, resp);
         }
         return Collections.unmodifiableMap(res);
     }
 
 
-    public List<AbstractSurveyResponse> readSurveyResponses(Survey s, String filename) throws SurveyException {
+    public List<SurveyResponse> readSurveyResponses(Survey s, String filename) throws SurveyException {
 
-        List<AbstractSurveyResponse> responses = null;
+        List<SurveyResponse> responses = null;
 
         if (new File(filename).isFile()) {
 
@@ -117,7 +109,7 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
             }
         } else if (new File(filename).isDirectory()) {
 
-            responses = new ArrayList<AbstractSurveyResponse>();
+            responses = new ArrayList<SurveyResponse>();
 
             for (File f : new File(filename).listFiles()) {
                 try {
@@ -132,14 +124,13 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
         return responses;
     }
 
-    @Override
-    public List<AbstractSurveyResponse> readSurveyResponses(
+    public List<SurveyResponse> readSurveyResponses(
             Survey s,
             Reader r)
             throws SurveyException
     {
 
-        List<AbstractSurveyResponse> responses = new LinkedList<AbstractSurveyResponse>();
+        List<SurveyResponse> responses = new LinkedList<SurveyResponse>();
 
         final CellProcessor[] cellProcessors = s.makeProcessorsForResponse();
 
@@ -147,29 +138,29 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
             ICsvMapReader reader = new CsvMapReader(r, CsvPreference.STANDARD_PREFERENCE);
             final String[] header = reader.getHeader(true);
             Map<String, Object> headerMap;
-            AbstractSurveyResponse sr = null;
+            SurveyResponse sr = null;
             while ((headerMap = reader.read(header, cellProcessors)) != null) {
                 // loop through one survey response (i.e. per responseid) at a time
                 if ( sr == null || !sr.getSrid().equals(headerMap.get("responseid"))){
                     if (sr!=null)
                         // add this to the list of responses and create a new one
                         responses.add(sr);
-                    sr = new SurveyResponse((String) headerMap.get("workerid"));
+                    sr = new SurveyResponse(s, (String) headerMap.get("workerid"));
                     sr.setSrid((String) headerMap.get("responseid"));
 
                 }
                 // fill out the individual question responses
                 IQuestionResponse questionResponse = new QuestionResponse(s, (String) headerMap.get("questionid"), (Integer) headerMap.get("questionpos"));
                 for (IQuestionResponse qr : sr.getAllResponses())
-                    if (qr.getQuestion().quid.equals((String) headerMap.get("questionid"))) {
+                    if (qr.getQuestion().id.equals(headerMap.get("questionid"))) {
                         // if we already have a QuestionResponse object matching this id, set it
                         questionResponse = qr;
                         break;
                     }
-                Component c;
-                if (!Question.customQuestion(questionResponse.getQuestion().quid))
+                SurveyDatum c;
+                if (!Question.customQuestion(questionResponse.getQuestion().id))
                     c = questionResponse.getQuestion().getOptById((String) headerMap.get("optionid"));
-                else c = new StringComponent((String) headerMap.get("optionid"), -1, -1);
+                else c = new StringDatum((String) headerMap.get("optionid"), -1, -1, -1);
                 Integer i = (Integer) headerMap.get("optionpos");
                 questionResponse.getOpts().add(new OptTuple(c,i));
                 sr.getAllResponses().add(questionResponse);
@@ -195,11 +186,11 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
             String quid = e.getElementsByTagName("QuestionIdentifier").item(0).getTextContent();
             String opts = e.getElementsByTagName("FreeText").item(0).getTextContent();
             QuestionResponse questionResponse;
-            if (quid.equals("commit"))
+            if (quid.equals("commit")) {
                 continue;
-            else if (!quid.startsWith("q")) {
+            } else if (!quid.startsWith("q")) {
                 questionResponse = new QuestionResponse();
-                questionResponse.add(quid, new OptTuple(new StringComponent(opts, -1, -1), -1), otherValues);
+                questionResponse.add(quid, new OptTuple(new StringDatum(opts, -1, -1, -1), -1), otherValues);
             } else {
                 questionResponse = new QuestionResponse(s.getQuestionById(quid));
                 String[] optionStuff = opts.split("\\|");
@@ -211,7 +202,7 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
                         // this is a hack
                         LOGGER.info(ise);
                         LOGGER.info(optionJSON);
-                        questionResponse.add(quid, new OptTuple(new StringComponent(optionJSON, -1, -1), -1), null);
+                        questionResponse.add(quid, new OptTuple(new StringDatum(optionJSON, -1, -1, -1), -1), null);
                     }
                 }
                 retval.add(questionResponse);
@@ -228,8 +219,8 @@ public class SurveyResponse extends AbstractSurveyResponse implements ISurveyRes
         for (IQuestionResponse questionResponse : this.getAllResponses()) {
             for (OptTuple optTuple : questionResponse.getOpts())
                 answerQuads.add(new AnswerQuad(
-                        questionResponse.getQuestion().quid,
-                        optTuple.c.getCid(),
+                        questionResponse.getQuestion().id,
+                        optTuple.c.getId(),
                         questionResponse.getIndexSeen(),
                         optTuple.i)
                 );

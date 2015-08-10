@@ -13,7 +13,6 @@ import edu.umass.cs.runner.system.backend.known.mturk.MturkLibrary;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkResponseManager;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkTask;
 import edu.umass.cs.runner.utils.Slurpie;
-import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 
@@ -29,23 +28,23 @@ public class JobManager {
 
     public static void recordBonus(
             double bonus,
-            AbstractSurveyResponse sr,
+            SurveyResponse sr,
             Survey survey)
             throws IOException
     {
-        String entry = String.format("%s,%s,%f\n", sr.getWorkerId(), survey.sourceName, bonus);
+        String entry = String.format("%s,%s,%f\n", sr.getSrid(), survey.sourceName, bonus);
         dump(AbstractLibrary.BONUS_DATA, entry, true);
     }
 
     public static boolean bonusPaid(
-            AbstractSurveyResponse sr,
+            SurveyResponse sr,
             Survey survey)
             throws IOException
     {
         String data = Slurpie.slurp(AbstractLibrary.BONUS_DATA);
         for (String line : data.split("\n")){
             String[] pieces = line.split(",");
-            if (pieces[0].equals(sr.getWorkerId()) && pieces[1].equals(survey.sourceName)) {
+            if (pieces[0].equals(sr.getSrid()) && pieces[1].equals(survey.sourceName)) {
                 Runner.LOGGER.info("BONUS PAID for response with id " + sr.getSrid());
                 return true;
             }
@@ -148,7 +147,7 @@ public class JobManager {
         try {
             String[] responses = Slurpie.slurp(record.outputFileName).split("\n");
             Runner.LOGGER.info(record.outputFileName);
-            SurveyResponse sr = new SurveyResponse("");
+            SurveyResponse sr = new SurveyResponse(record.survey, "");
             sr.readSurveyResponses(record.survey, new FileReader(record.outputFileName));
         } catch (IOException io) {
             Runner.LOGGER.info(io);

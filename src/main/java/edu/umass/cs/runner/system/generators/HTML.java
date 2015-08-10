@@ -7,10 +7,10 @@ import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.input.AbstractLexer;
 import edu.umass.cs.surveyman.input.AbstractParser;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
-import edu.umass.cs.surveyman.survey.Component;
-import edu.umass.cs.surveyman.survey.HTMLComponent;
-import edu.umass.cs.surveyman.survey.StringComponent;
+import edu.umass.cs.surveyman.survey.HTMLDatum;
+import edu.umass.cs.surveyman.survey.StringDatum;
 import edu.umass.cs.surveyman.survey.Survey;
+import edu.umass.cs.surveyman.survey.SurveyDatum;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -41,12 +41,12 @@ public class HTML {
     }
 
     private static String stringifyPreview(
-            Component c)
+            SurveyDatum c)
             throws SurveyException
     {
-        String baseString = Component.html(c);
+        String baseString = SurveyDatum.html(c);
         return String.format("<div id=\"preview\" hidden>%s</div>"
-                , ((c instanceof StringComponent) ? CSVLexer.htmlChars2XML(baseString) : ""));
+                , ((c instanceof StringDatum) ? CSVLexer.htmlChars2XML(baseString) : ""));
     }
 
     public static void spitHTMLToFile(
@@ -84,7 +84,9 @@ public class HTML {
             assert(record.library!=null);
             assert(record.library.props!=null);
             String strPreview = cleanedPreview(record);
-            Component preview = AbstractParser.parseComponent(HTMLComponent.isHTMLComponent(strPreview) ? AbstractLexer.xmlChars2HTML(strPreview) : strPreview, -1, -1);
+            SurveyDatum preview = AbstractParser.parseComponent(
+                    HTMLDatum.isHTMLComponent(strPreview) ? AbstractLexer.xmlChars2HTML(strPreview) : strPreview,
+                    -1, -1, -1);
             html = String.format(Slurpie.slurp(AbstractLibrary.HTMLSKELETON)
                     , record.survey.encoding
                     , JS.getJSString(record.backendType, record.survey, preview)

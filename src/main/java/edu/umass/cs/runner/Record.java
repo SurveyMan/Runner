@@ -5,7 +5,6 @@ import edu.umass.cs.runner.system.SurveyResponse;
 import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.runner.system.backend.KnownBackendType;
 import edu.umass.cs.runner.system.backend.ITask;
-import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.qc.Classifier;
 import edu.umass.cs.surveyman.qc.QCMetrics;
 import edu.umass.cs.surveyman.survey.Survey;
@@ -29,8 +28,8 @@ public class Record implements Serializable {
     final public boolean smoothing;
     final public double alpha;
     final public String rid = gensym.next();
-    private List<AbstractSurveyResponse> validResponses;
-    private List<AbstractSurveyResponse> botResponses;
+    private List<SurveyResponse> validResponses;
+    private List<SurveyResponse> botResponses;
     private Deque<ITask> tasks; // these should be hitids
     private String htmlFileName = "";
     public KnownBackendType backendType;
@@ -123,8 +122,8 @@ public class Record implements Serializable {
         }
         this.survey = survey;
         this.library = someLib; //new MturkLibrary();
-        this.validResponses = new ArrayList<AbstractSurveyResponse>();
-        this.botResponses = new ArrayList<AbstractSurveyResponse>();
+        this.validResponses = new ArrayList<SurveyResponse>();
+        this.botResponses = new ArrayList<SurveyResponse>();
         this.tasks = new ArrayDeque<ITask>();
         this.backendType = backendType;
         this.classifier = classifier;
@@ -206,12 +205,12 @@ public class Record implements Serializable {
         List<SurveyResponse> allResponses = new ArrayList<SurveyResponse>();
 
         if (this.validResponses != null) {
-            for (AbstractSurveyResponse abstractSurveyResponse : validResponses)
-                allResponses.add((SurveyResponse) abstractSurveyResponse);
+            for (SurveyResponse SurveyResponse : validResponses)
+                allResponses.add((SurveyResponse) SurveyResponse);
         }
         if (this.botResponses != null) {
-            for (AbstractSurveyResponse abstractSurveyResponse : botResponses)
-                allResponses.add((SurveyResponse) abstractSurveyResponse);
+            for (SurveyResponse SurveyResponse : botResponses)
+                allResponses.add((SurveyResponse) SurveyResponse);
         }
         return allResponses;
     }
@@ -219,8 +218,8 @@ public class Record implements Serializable {
     public String jsonizeResponses()
             throws SurveyException
     {
-        List<SurveyResponse> abstractSurveyResponses = this.getAllResponses();
-        QCMetrics.classifyResponses(this.survey, new ArrayList<AbstractSurveyResponse>(abstractSurveyResponses), this.classifier, this.smoothing, this.alpha);
+        List<SurveyResponse> SurveyResponses = this.getAllResponses();
+        QCMetrics.classifyResponses(this.survey, new ArrayList<SurveyResponse>(SurveyResponses), this.classifier, this.smoothing, this.alpha);
         List<String> strings = new ArrayList<String>();
         for (SurveyResponse sr : this.getAllResponses()) {
             strings.add(sr.makeStruct().jsonize());
@@ -230,8 +229,8 @@ public class Record implements Serializable {
 
     public boolean needsWrite()
     {
-        for (AbstractSurveyResponse abstractSurveyResponse : this.getAllResponses())
-            if (!abstractSurveyResponse.isRecorded())
+        for (SurveyResponse SurveyResponse : this.getAllResponses())
+            if (!SurveyResponse.isRecorded())
                 return true;
         return false;
     }
@@ -245,19 +244,19 @@ public class Record implements Serializable {
     }
 
     public synchronized void addBotResponse(
-            AbstractSurveyResponse surveyResponse)
+            SurveyResponse surveyResponse)
     {
         this.botResponses.add(surveyResponse);
     }
 
     public synchronized void addValidResponse(
-            AbstractSurveyResponse surveyResponse)
+            SurveyResponse surveyResponse)
     {
         this.validResponses.add(surveyResponse);
     }
 
     public synchronized void removeBotResponse(
-            AbstractSurveyResponse surveyResponse)
+            SurveyResponse surveyResponse)
     {
         if (this.botResponses.contains(surveyResponse)) {
             this.botResponses.remove(surveyResponse);
@@ -265,7 +264,7 @@ public class Record implements Serializable {
     }
 
     public synchronized void removeValidResponse(
-            AbstractSurveyResponse surveyResponse)
+            SurveyResponse surveyResponse)
     {
         if (this.validResponses.contains(surveyResponse)) {
             this.botResponses.remove(surveyResponse);

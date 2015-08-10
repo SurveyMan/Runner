@@ -2,7 +2,6 @@ package edu.umass.cs.runner.system.backend.known.localhost;
 
 import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.system.SurveyResponse;
-import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.qc.QCMetrics;
 import edu.umass.cs.surveyman.survey.Survey;
@@ -105,7 +104,7 @@ public class LocalResponseManager extends AbstractResponseManager {
                         valid = QCMetrics.entropyClassification(
                                 survey,
                                 sr,
-                                new ArrayList<AbstractSurveyResponse>(r.getAllResponses()),
+                                new ArrayList<SurveyResponse>(r.getAllResponses()),
                                 r.smoothing,
                                 r.alpha
                         );
@@ -114,7 +113,7 @@ public class LocalResponseManager extends AbstractResponseManager {
                         valid = QCMetrics.logLikelihoodClassification(
                                 survey,
                                 sr,
-                                new ArrayList<AbstractSurveyResponse>(r.getAllResponses()),
+                                new ArrayList<SurveyResponse>(r.getAllResponses()),
                                 r.smoothing,
                                 r.alpha
                         );
@@ -166,11 +165,7 @@ public class LocalResponseManager extends AbstractResponseManager {
     }
 
     @Override
-    public void awardBonus(
-            double amount,
-            AbstractSurveyResponse sr,
-            Survey survey)
-    {
+    public void awardBonus(double amount, edu.umass.cs.surveyman.analyses.SurveyResponse sr, Survey survey) {
 
     }
 

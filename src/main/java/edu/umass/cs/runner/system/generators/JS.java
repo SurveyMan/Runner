@@ -6,8 +6,8 @@ import java.io.IOException;
 import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.runner.system.backend.KnownBackendType;
 import edu.umass.cs.runner.utils.Slurpie;
-import edu.umass.cs.surveyman.survey.Component;
-import edu.umass.cs.surveyman.survey.HTMLComponent;
+import edu.umass.cs.surveyman.survey.HTMLDatum;
+import edu.umass.cs.surveyman.survey.SurveyDatum;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.apache.log4j.Logger;
@@ -17,14 +17,14 @@ public class JS {
     private static final Logger LOGGER = Logger.getLogger("system.mturk");
 
     private static String makePreview(
-            Component preview)
+            SurveyDatum preview)
             throws SurveyException,
             IOException
     {
         String loadPreview;
-        if (preview instanceof HTMLComponent)
+        if (preview instanceof HTMLDatum)
             loadPreview = String.format(" $('#preview').append('%s'); "
-                    , ((HTMLComponent) preview).data);
+                    , ((HTMLDatum) preview).data);
         else loadPreview = "";
         return loadPreview;
     }
@@ -32,7 +32,7 @@ public class JS {
     public static String getJSString(
             KnownBackendType knownBackendType,
             Survey survey,
-            Component preview)
+            SurveyDatum preview)
             throws SurveyException,
             IOException
     {

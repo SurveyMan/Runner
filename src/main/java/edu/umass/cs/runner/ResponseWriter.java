@@ -1,12 +1,11 @@
 package edu.umass.cs.runner;
 
 import edu.umass.cs.runner.system.SurveyResponse;
-import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
 import edu.umass.cs.surveyman.analyses.OptTuple;
 import edu.umass.cs.surveyman.input.AbstractParser;
-import edu.umass.cs.surveyman.survey.HTMLComponent;
-import edu.umass.cs.surveyman.survey.StringComponent;
+import edu.umass.cs.surveyman.survey.HTMLDatum;
+import edu.umass.cs.surveyman.survey.StringDatum;
 import edu.umass.cs.surveyman.survey.Survey;
 
 import java.util.*;
@@ -68,10 +67,10 @@ public class ResponseWriter {
 
             // construct actual option text
             String otext = "";
-            if (opt.c instanceof HTMLComponent)
-                otext = ((HTMLComponent) opt.c).data.toString();
-            else if (opt.c instanceof StringComponent && ((StringComponent) opt.c).data!=null)
-                otext = ((StringComponent) opt.c).data.toString();
+            if (opt.c instanceof HTMLDatum)
+                otext = ((HTMLDatum) opt.c).data.toString();
+            else if (opt.c instanceof StringDatum && ! opt.c.isEmpty())
+                otext = ((StringDatum) opt.c).data.toString();
             otext = otext.replaceAll("\"", "\"\"");
             otext = "\"" + otext + "\"";
 
@@ -81,12 +80,12 @@ public class ResponseWriter {
                 toWrite.append(String.format("%s%%%d$s", sep, i+1));
             retval.append(String.format(toWrite.toString()
                     , sr.getSrid()
-                    , sr.getWorkerId()
+                    , sr.getSrid()
                     , survey.sid
-                    , qr.getQuestion().quid
+                    , qr.getQuestion().id
                     , qtext.toString()
                     , qr.getIndexSeen()
-                    , opt.c.getCid()
+                    , opt.c.getId()
                     , otext
                     , opt.i));
 
@@ -131,7 +130,7 @@ public class ResponseWriter {
 
         //assert sr.getAllResponses().size() > 0 : "Cannot have 0 responses to a survey!!";
 
-        for (IQuestionResponse qr : sr.getAllResponses())
+        for (IQuestionResponse qr : sr.resultsAsMap().values())
             retval.append(outputQuestionResponse(survey, qr, sr));
 
         //assert retval.length() != 0 : "Cannot have a survey response of length 0!!";

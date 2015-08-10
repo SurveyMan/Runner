@@ -14,7 +14,6 @@ import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.runner.system.Parameters;
 import edu.umass.cs.runner.system.SurveyResponse;
-import edu.umass.cs.surveyman.analyses.AbstractSurveyResponse;
 import edu.umass.cs.surveyman.qc.QCMetrics;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
@@ -139,7 +138,7 @@ public class MturkResponseManager extends AbstractResponseManager {
     @Override
     public void awardBonus(
             double amount,
-            AbstractSurveyResponse sr,
+            edu.umass.cs.surveyman.analyses.SurveyResponse sr,
             Survey survey)
     {
         String name = "awardBonus";
@@ -157,10 +156,10 @@ public class MturkResponseManager extends AbstractResponseManager {
                     Runner.LOGGER.info("all assignments for this record:" + assignments.length);
                     String assignmentId = "";
                     for (Assignment a : assignments) {
-                        if (a.getWorkerId().equals(sr.getWorkerId())) {
-                            service.grantBonus(sr.getWorkerId(), amount, assignmentId, "For partial work completed.");
+                        if (a.getWorkerId().equals(sr.getSrid())) {
+                            service.grantBonus(sr.getSrid(), amount, assignmentId, "For partial work completed.");
                             Runner.LOGGER.info(String.format("Granted worker %s bonus %f for assignment %s in survey %s"
-                                    , sr.getWorkerId(), amount, assignmentId, survey.sourceName));
+                                    , sr.getSrid(), amount, assignmentId, survey.sourceName));
                         }
                     }
                 }
@@ -392,7 +391,7 @@ public class MturkResponseManager extends AbstractResponseManager {
     }
 
     private boolean isValid(
-            AbstractSurveyResponse surveyResponse,
+            SurveyResponse surveyResponse,
             Record record)
             throws SurveyException
     {
@@ -401,7 +400,7 @@ public class MturkResponseManager extends AbstractResponseManager {
                 return QCMetrics.logLikelihoodClassification(
                         record.survey,
                         surveyResponse,
-                        new ArrayList<AbstractSurveyResponse>(record.getAllResponses()),
+                        new ArrayList<SurveyResponse>(record.getAllResponses()),
                         record.smoothing,
                         record.alpha
                 );
@@ -409,7 +408,7 @@ public class MturkResponseManager extends AbstractResponseManager {
                 return QCMetrics.entropyClassification(
                         record.survey,
                         surveyResponse,
-                        new ArrayList<AbstractSurveyResponse>(record.getAllResponses()),
+                        new ArrayList<SurveyResponse>(record.getAllResponses()),
                         record.smoothing,
                         record.alpha
                 );

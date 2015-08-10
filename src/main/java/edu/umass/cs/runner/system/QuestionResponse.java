@@ -1,10 +1,11 @@
 package edu.umass.cs.runner.system;
 
+import edu.umass.cs.runner.Runner;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
 import edu.umass.cs.surveyman.analyses.OptTuple;
-import edu.umass.cs.surveyman.survey.Component;
+import edu.umass.cs.surveyman.survey.SurveyDatum;
 import edu.umass.cs.surveyman.survey.Question;
-import edu.umass.cs.surveyman.survey.StringComponent;
+import edu.umass.cs.surveyman.survey.StringDatum;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.json.JSONException;
@@ -50,7 +51,7 @@ public class QuestionResponse implements IQuestionResponse {
 
     public String quid()
     {
-        return q.quid;
+        return q.id;
     }
 
     public void add(
@@ -60,8 +61,8 @@ public class QuestionResponse implements IQuestionResponse {
     {
         this.otherValues = otherValues;
         if (this.q == null) {
-            this.q = new Question("", -1, -1);
-            this.q.quid = quid;
+            this.q = Question.makeQuestion("", -1, -1);
+            this.q.id = quid;
         }
         this.opts.add(tupe);
         this.indexSeen = -1;
@@ -77,16 +78,16 @@ public class QuestionResponse implements IQuestionResponse {
         this.otherValues.putAll(otherValues);
 
         if (custom){
-            this.q = new Question(new StringComponent("CUSTOM", -1, -1), -1, -1);
+            this.q = Question.makeQuestion("CUSTOM", -1, -1);
             this.indexSeen = response.getInt("qpos");
-            this.opts.add(new OptTuple(new StringComponent(response.getString("oid"), -1, -1), -1));
+            this.opts.add(new OptTuple(new StringDatum(response.getString("oid"), -1, -1, -1), -1));
         } else {
             this.q = s.getQuestionById(response.getString("quid"));
             this.indexSeen = response.getInt("qpos");
-            if (q.freetext) {
-                // do something
-            } else {
-                Component c = s.getQuestionById(q.quid).getOptById(response.getString("oid"));
+            // do something
+            if (q.freetext) Runner.LOGGER.warn("In freetext -- do something?");
+            else {
+                SurveyDatum c = s.getQuestionById(q.id).getOptById(response.getString("oid"));
                 int optloc = response.getInt("opos");
                 this.opts.add(new OptTuple(c, optloc));
             }
@@ -94,29 +95,10 @@ public class QuestionResponse implements IQuestionResponse {
     }
 
     @Override
-    public Question getQuestion()
-    {
-        return q;
-    }
-
-    @Override
-    public List<OptTuple> getOpts() {
-        return opts;
-    }
-
-    @Override
-    public int getIndexSeen() {
-        return indexSeen;
-    }
-
-    @Override
     public boolean equals(
-            Object that)
-    {
-        if (that instanceof QuestionResponse) {
-            return this.q.equals(((QuestionResponse) that).q)
-                    && this.opts.equals(((QuestionResponse) that).opts);
-        } else return false;
+            Object that) {
+        return that instanceof QuestionResponse && this.q.equals(((QuestionResponse) that).q)
+                && this.opts.equals(((QuestionResponse) that).opts);
     }
 
     @Override
@@ -126,7 +108,41 @@ public class QuestionResponse implements IQuestionResponse {
         for (OptTuple o : opts){
             s.append(o.c.toString());
         }
-        return String.format(" (%s) %s : [ %s ]", q.quid, q.toString(), s.toString());
+        return String.format(" (%s) %s : [ %s ]", q.id, q.toString(), s.toString());
     }
 
+    public Question getQuestion() {
+        return this.q;
+    }
+
+    public List<OptTuple> getOpts() {
+        return this.opts;
+    }
+
+    public int getIndexSeen() {
+        return this.indexSeen;
+    }
+
+    public SurveyDatum getAnswer() throws SurveyException {
+        if (this.getQuestion().exclusive)
+            return this.getOpts().get(0).c;
+        else throw new RuntimeException("Cannot call getAnswer() on non-exclusive questions. Try getAnswers() instead.");
+
+    }
+
+    public List<SurveyDatum> getAnswers() throws SurveyException {
+        if (this.getQuestion().exclusive)
+            throw new RuntimeException("Cannot call getAnswers() on exclusive questions. Try getAnswer() instead.");
+        List<SurveyDatum> answers = new ArrayList<SurveyDatum>();
+        for (OptTuple optTuple : this.getOpts())
+            answers.add(optTuple.c);
+        return answers;
+    }
+
+    public int compareTo(Object o) {
+        if (o instanceof IQuestionResponse) {
+            IQuestionResponse that = (IQuestionResponse) o;
+            return this.getQuestion().compareTo(that.getQuestion());
+        } else throw new RuntimeException(String.format("Cannot compare classes %s and %s",
+                this.getClass().getName(), o.getClass().getName()));    }
 }
