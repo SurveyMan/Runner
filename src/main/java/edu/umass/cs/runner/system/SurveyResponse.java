@@ -63,7 +63,7 @@ public class SurveyResponse extends edu.umass.cs.surveyman.analyses.SurveyRespon
     @Override
     public String getSrid()
     {
-        return this.getSrid();
+        return this.srid;
     }
 
     public SurveyResponse (Survey s, String workerId, String xmlAns, Record record, Map<String, String> ov)
