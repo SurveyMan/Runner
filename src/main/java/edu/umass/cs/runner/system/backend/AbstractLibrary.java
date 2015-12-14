@@ -1,7 +1,6 @@
 package edu.umass.cs.runner.system.backend;
 
 import edu.umass.cs.runner.Runner;
-import edu.umass.cs.runner.system.exceptions.SystemException;
 import edu.umass.cs.runner.utils.Slurpie;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.commons.lang3.StringUtils;

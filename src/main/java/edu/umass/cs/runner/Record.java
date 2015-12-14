@@ -5,8 +5,8 @@ import edu.umass.cs.runner.system.SurveyResponse;
 import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.runner.system.backend.KnownBackendType;
 import edu.umass.cs.runner.system.backend.ITask;
-import edu.umass.cs.surveyman.qc.Classifier;
 import edu.umass.cs.surveyman.qc.QCMetrics;
+import edu.umass.cs.surveyman.qc.classifiers.AbstractClassifier;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import edu.umass.cs.surveyman.utils.Gensym;
@@ -24,8 +24,8 @@ public class Record implements Serializable {
     public String outputFileName;
     final public Survey survey;
     public AbstractLibrary library;
-    final public Classifier classifier;
-    final public boolean smoothing;
+    final public AbstractClassifier classifier;
+    final public QCMetrics qcMetrics;
     final public double alpha;
     final public String rid = gensym.next();
     private List<SurveyResponse> validResponses;
@@ -36,9 +36,7 @@ public class Record implements Serializable {
     public final double expectedCost;
     private final String RECORDDIR = AbstractLibrary.RECORDDIR + AbstractLibrary.fileSep + this.rid;
 
-    public String serializeRecord()
-            throws IOException
-    {
+    public String serializeRecord() throws IOException {
         String timestamp = String.valueOf(System.currentTimeMillis());
         String serializedFileName = RECORDDIR + AbstractLibrary.fileSep + timestamp;
         FileOutputStream fileOutputStream = new FileOutputStream(serializedFileName);
@@ -50,9 +48,7 @@ public class Record implements Serializable {
         return serializedFileName;
     }
 
-    public static Record deserializeRecord(
-            String serializedRecordFilename)
-            throws IOException, ClassNotFoundException {
+    public static Record deserializeRecord(String serializedRecordFilename) throws IOException, ClassNotFoundException {
         Record record;
         FileInputStream fileInputStream = new FileInputStream(serializedRecordFilename);
         ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
@@ -62,10 +58,7 @@ public class Record implements Serializable {
         return record;
     }
 
-    public static Record deserializeLatestRecord(
-            String recordDirectory)
-            throws IOException, ClassNotFoundException
-    {
+    public static Record deserializeLatestRecord(String recordDirectory) throws IOException, ClassNotFoundException {
         File dir = new File(recordDirectory);
         assert dir.isDirectory() : String.format("File %s is not a directory", recordDirectory);
         long maxTimestamp = Long.MIN_VALUE;
@@ -77,14 +70,8 @@ public class Record implements Serializable {
         return deserializeRecord(recordDirectory + AbstractLibrary.fileSep + String.valueOf(maxTimestamp));
     }
 
-    public Record(
-            final Survey survey,
-            AbstractLibrary someLib,
-            Classifier classifier,
-            boolean smoothing,
-            double alpha,
-            KnownBackendType backendType)
-    {
+    public Record(QCMetrics qcMetrics, AbstractLibrary someLib, KnownBackendType backendType) {
+        this.qcMetrics = qcMetrics;
         try {
             boolean madeOutDir = (new File(AbstractLibrary.OUTDIR)).mkdir();
             LOGGER.debug(String.format("Made new ouput directory: %b", madeOutDir));
@@ -93,8 +80,8 @@ public class Record implements Serializable {
             File outfile = new File(String.format("%s%s%s_%s_%s.csv"
                     , AbstractLibrary.OUTDIR
                     , AbstractLibrary.fileSep
-                    , survey.sourceName
-                    , survey.sid
+                    , qcMetrics.survey.sourceName
+                    , qcMetrics.survey.sid
                     , AbstractLibrary.TIME));
             boolean madeOutFile = outfile.createNewFile();
             LOGGER.debug(String.format("Made new outputfile %s: %b", outfile, madeOutFile));
@@ -102,8 +89,8 @@ public class Record implements Serializable {
                     , (new File("")).getAbsolutePath()
                     , AbstractLibrary.fileSep
                     , AbstractLibrary.fileSep
-                    , survey.sourceName
-                    , survey.sid
+                    , qcMetrics.survey.sourceName
+                    , qcMetrics.survey.sid
                     , AbstractLibrary.TIME));
             boolean createdNewFile = false;
             if (! htmlFileName.exists())
@@ -120,15 +107,14 @@ public class Record implements Serializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.survey = survey;
+        this.survey = qcMetrics.survey;
         this.library = someLib; //new MturkLibrary();
         this.validResponses = new ArrayList<SurveyResponse>();
         this.botResponses = new ArrayList<SurveyResponse>();
         this.tasks = new ArrayDeque<ITask>();
         this.backendType = backendType;
-        this.classifier = classifier;
-        this.smoothing = smoothing;
-        this.alpha = alpha;
+        this.classifier = qcMetrics.classifier;
+        this.alpha = qcMetrics.classifier.alpha;
         this.expectedCost = computeExpectedCost();
         LOGGER.info(String.format("New record with id (%s) created for survey %s (%s)."
                 , rid
@@ -143,18 +129,9 @@ public class Record implements Serializable {
         }
     }
 
-    public Record(
-            final Survey survey,
-            AbstractLibrary someLib,
-            KnownBackendType backendType)
-    {
-        this(survey, someLib, Classifier.ALL, false, -0.0, backendType);
-    }
-
-    private double computeExpectedCost()
-    {
+    private double computeExpectedCost() {
         try {
-            double averagePathLength = QCMetrics.averagePathLength(this.survey);
+            double averagePathLength = this.qcMetrics.averagePathLength();
             int n = Integer.parseInt((String) this.library.props.get(Parameters.NUM_PARTICIPANTS));
             return averagePathLength *
                    (AbstractLibrary.timePerQuestionInSeconds / 3600) *
@@ -182,9 +159,7 @@ public class Record implements Serializable {
         return this.htmlFileName;
     }
 
-    public void addNewTask(
-            ITask task)
-    {
+    public void addNewTask(ITask task) {
         tasks.push(task);
         try {
             this.serializeRecord();
@@ -193,15 +168,13 @@ public class Record implements Serializable {
         }
     }
 
-    public ITask[] getAllTasks()
-    {
+    public ITask[] getAllTasks() {
         if (this.tasks == null || this.tasks.isEmpty())
             return new ITask[0];
         return this.tasks.toArray(new ITask[tasks.size()]);
     }
 
-    public synchronized List<SurveyResponse> getAllResponses()
-    {
+    public synchronized List<SurveyResponse> getAllResponses() {
         List<SurveyResponse> allResponses = new ArrayList<SurveyResponse>();
 
         if (this.validResponses != null) {
@@ -215,20 +188,17 @@ public class Record implements Serializable {
         return allResponses;
     }
 
-    public String jsonizeResponses()
-            throws SurveyException
-    {
+    public String jsonizeResponses() throws SurveyException {
         List<SurveyResponse> SurveyResponses = this.getAllResponses();
-        QCMetrics.classifyResponses(this.survey, new ArrayList<SurveyResponse>(SurveyResponses), this.classifier, this.smoothing, this.alpha);
-        List<String> strings = new ArrayList<String>();
+        qcMetrics.classifyResponses(new ArrayList<SurveyResponse>(SurveyResponses));
+        List<String> strings = new ArrayList<>();
         for (SurveyResponse sr : this.getAllResponses()) {
             strings.add(sr.makeStruct().jsonize());
         }
         return String.format("[ %s ]", StringUtils.join(strings, ", "));
     }
 
-    public boolean needsWrite()
-    {
+    public boolean needsWrite() {
         for (SurveyResponse SurveyResponse : this.getAllResponses())
             if (!SurveyResponse.isRecorded())
                 return true;
@@ -243,29 +213,21 @@ public class Record implements Serializable {
         return this.botResponses.size();
     }
 
-    public synchronized void addBotResponse(
-            SurveyResponse surveyResponse)
-    {
+    public synchronized void addBotResponse(SurveyResponse surveyResponse) {
         this.botResponses.add(surveyResponse);
     }
 
-    public synchronized void addValidResponse(
-            SurveyResponse surveyResponse)
-    {
+    public synchronized void addValidResponse(SurveyResponse surveyResponse) {
         this.validResponses.add(surveyResponse);
     }
 
-    public synchronized void removeBotResponse(
-            SurveyResponse surveyResponse)
-    {
+    public synchronized void removeBotResponse(SurveyResponse surveyResponse) {
         if (this.botResponses.contains(surveyResponse)) {
             this.botResponses.remove(surveyResponse);
         }
     }
 
-    public synchronized void removeValidResponse(
-            SurveyResponse surveyResponse)
-    {
+    public synchronized void removeValidResponse(SurveyResponse surveyResponse) {
         if (this.validResponses.contains(surveyResponse)) {
             this.botResponses.remove(surveyResponse);
         }
@@ -285,7 +247,6 @@ public class Record implements Serializable {
                     surveyEqual = this.survey.equals(that.survey),
                     libraryEqual = this.library.equals(that.library),
                     classifierEqual = this.classifier.equals(that.classifier),
-                    smoothingEqual = this.smoothing == that.smoothing,
                     alphaEqual = this.alpha == that.alpha,
                     ridEqual = this.rid.equals(that.rid),
                     numResponsesEqual = thisNumResponses == thatNumResponses,
@@ -303,9 +264,6 @@ public class Record implements Serializable {
                 return false;
             } else if (!classifierEqual) {
                 LOGGER.debug(String.format("Classifiers not equal: (%s vs. %s)", this.classifier, that.classifier));
-                return false;
-            } else if (!smoothingEqual) {
-                LOGGER.debug(String.format("Smoothing not equal (%b vs. %b)", this.smoothing, that.smoothing));
                 return false;
             } else if (!alphaEqual) {
                 LOGGER.debug(String.format("Alpha not equal (%f vs. %f)", this.alpha, that.alpha));

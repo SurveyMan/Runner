@@ -4,6 +4,7 @@ import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.system.SurveyResponse;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.qc.QCMetrics;
+import edu.umass.cs.surveyman.qc.classifiers.AbstractClassifier;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.apache.commons.httpclient.HttpHost;
@@ -98,7 +99,7 @@ public class LocalResponseManager extends AbstractResponseManager {
             for (Server.IdResponseTuple tupe : tuples) {
                 SurveyResponse sr = parseResponse(tupe.id, tupe.xml, survey, r, null);
                 assert sr!=null;
-                boolean valid;
+                boolean valid =
                 switch (r.classifier) {
                     case ENTROPY:
                         valid = QCMetrics.entropyClassification(
