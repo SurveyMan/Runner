@@ -34,7 +34,7 @@ public class MturkLibrary extends AbstractLibrary {
     public MturkLibrary(Properties properties, Survey survey) {
         init();
         this.props = properties;
-        Runner.LOGGER.info("Updated properties to " + properties.toString());
+//        Runner.LOGGER.info("Updated properties to " + properties.toString());
         this.props.setProperty("reward", Double.toString(Runner.basePay));
     }
 
@@ -68,11 +68,11 @@ public class MturkLibrary extends AbstractLibrary {
             File paramsFile = new File(AbstractLibrary.PARAMS);
             if (paramsFile.exists() && props==null){
                 props = new Properties();
-                Runner.LOGGER.info("Loading properties from " + AbstractLibrary.PARAMS);
+//                Runner.LOGGER.info("Loading properties from " + AbstractLibrary.PARAMS);
                 props.load(new FileReader(AbstractLibrary.PARAMS));
             } else {
-                Runner.LOGGER.warn(String.format("%s exists: %b\n\tprops is null: %b",
-                        AbstractLibrary.PARAMS, paramsFile.exists(), props==null));
+//                Runner.LOGGER.warn(String.format("%s exists: %b\n\tprops is null: %b",
+//                        AbstractLibrary.PARAMS, paramsFile.exists(), props==null));
             }
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();
@@ -83,7 +83,7 @@ public class MturkLibrary extends AbstractLibrary {
                 props = new Properties();
         }
 
-        Runner.LOGGER.info(props.toString());
+//        Runner.LOGGER.info(props.toString());
 
         boolean sandbox = ! this.props.containsKey(Parameters.SANDBOX) ||
                 Boolean.parseBoolean(this.props.getProperty(Parameters.SANDBOX));
@@ -102,7 +102,7 @@ public class MturkLibrary extends AbstractLibrary {
         if (! cfile.exists() ) {
             if (alt.exists())
                 alt.renameTo(cfile);
-            else Runner.LOGGER.warn("ERROR: You have not yet set up the surveyman directory nor AWS keys. Please see the project website for instructions.");
+//            else Runner.LOGGER.warn("ERROR: You have not yet set up the surveyman directory nor AWS keys. Please see the project website for instructions.");
         } else {
             try {
                 // make sure we have both names for the access keys in the config file
@@ -134,7 +134,7 @@ public class MturkLibrary extends AbstractLibrary {
                     bw.close();
                 }
             } catch (IOException io){
-                Runner.LOGGER.trace(io);
+//                Runner.LOGGER.trace(io);
             }
         }
     }
@@ -162,13 +162,13 @@ public class MturkLibrary extends AbstractLibrary {
         if (o instanceof MturkLibrary) {
             MturkLibrary that = (MturkLibrary) o;
             if (!this.CONFIG.equals(that.CONFIG)) {
-                LOGGER.debug(String.format("Config filenames are not equal (%s vs. %s)", this.CONFIG, that.CONFIG));
+//                LOGGER.debug(String.format("Config filenames are not equal (%s vs. %s)", this.CONFIG, that.CONFIG));
                 return false;
             } else if (!this.EXTERNAL_HIT.equals(that.EXTERNAL_HIT)) {
-                LOGGER.debug(String.format("External HIT URLs not equal (%s vs. %s)", this.EXTERNAL_HIT, that.EXTERNAL_HIT));
+//                LOGGER.debug(String.format("External HIT URLs not equal (%s vs. %s)", this.EXTERNAL_HIT, that.EXTERNAL_HIT));
                 return false;
             } else if (!this.MTURK_URL.equals(that.MTURK_URL)) {
-                LOGGER.debug(String.format("Mturk URLs not equal (%s vs. %s)", this.MTURK_URL, that.MTURK_URL));
+//                LOGGER.debug(String.format("Mturk URLs not equal (%s vs. %s)", this.MTURK_URL, that.MTURK_URL));
                 return false;
             } else {
                 Set<String> thisBackendHeaders = new HashSet<String>(this.backendHeaders);
@@ -176,9 +176,9 @@ public class MturkLibrary extends AbstractLibrary {
                 if (thisBackendHeaders.equals(thatBackendHeaders))
                     return true;
                 else {
-                    LOGGER.debug(String.format("Backend headers not equal (%s vs. %s)",
-                            StringUtils.join(thisBackendHeaders, ","),
-                            StringUtils.join(thatBackendHeaders, ",")));
+//                    LOGGER.debug(String.format("Backend headers not equal (%s vs. %s)",
+//                            StringUtils.join(thisBackendHeaders, ","),
+//                            StringUtils.join(thatBackendHeaders, ",")));
                     return false;
                 }
             }

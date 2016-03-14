@@ -68,7 +68,7 @@ public class WebServer {
                 LocalResponseManager.chill(5);
                 currentPort++;
                 e = exception;
-                Runner.LOGGER.warn(e.getMessage());
+//                Runner.LOGGER.warn(e.getMessage());
             } catch (Exception ex) {
                 throw new WebServerException(ex);
             }

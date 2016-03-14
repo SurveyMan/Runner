@@ -45,7 +45,7 @@ public class JobManager {
         for (String line : data.split("\n")){
             String[] pieces = line.split(",");
             if (pieces[0].equals(sr.getSrid()) && pieces[1].equals(survey.sourceName)) {
-                Runner.LOGGER.info("BONUS PAID for response with id " + sr.getSrid());
+//                Runner.LOGGER.info("BONUS PAID for response with id " + sr.getSrid());
                 return true;
             }
         }
@@ -92,7 +92,7 @@ public class JobManager {
             dump(AbstractLibrary.UNFINISHED_JOB_FILE, data.toString());
             return true;
         } catch (IOException ex) {
-            Runner.LOGGER.warn(ex);
+//            Runner.LOGGER.warn(ex);
         }
         return false;
     }
@@ -116,7 +116,7 @@ public class JobManager {
             dump(dir + jobID + ".csv", Slurpie.slurp(survey.source));
             return true;
         } catch (IOException ex) {
-            Runner.LOGGER.warn(ex);
+//            Runner.LOGGER.warn(ex);
         }
         return false;
     }
@@ -146,11 +146,11 @@ public class JobManager {
         record.outputFileName = AbstractLibrary.OUTDIR + AbstractLibrary.fileSep + jobId + ".csv";
         try {
             String[] responses = Slurpie.slurp(record.outputFileName).split("\n");
-            Runner.LOGGER.info(record.outputFileName);
+//            Runner.LOGGER.info(record.outputFileName);
             SurveyResponse sr = new SurveyResponse(record.survey, "");
             sr.readSurveyResponses(record.survey, new FileReader(record.outputFileName));
         } catch (IOException io) {
-            Runner.LOGGER.info(io);
+//            Runner.LOGGER.info(io);
         }
     }
 
@@ -203,7 +203,7 @@ public class JobManager {
             }
             JobManager.dump(AbstractLibrary.UNFINISHED_JOB_FILE, writeMe.toString(), false);
         } catch (IOException ex) {
-            Runner.LOGGER.warn(ex);
+//            Runner.LOGGER.warn(ex);
         }
     }
 }

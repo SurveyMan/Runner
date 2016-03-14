@@ -85,7 +85,9 @@ public class QuestionResponse implements IQuestionResponse {
             this.q = s.getQuestionById(response.getString("quid"));
             this.indexSeen = response.getInt("qpos");
             // do something
-            if (q.freetext) Runner.LOGGER.warn("In freetext -- do something?");
+            if (q.freetext) {
+//                Runner.LOGGER.warn("In freetext -- do something?");
+            }
             else {
                 SurveyDatum c = s.getQuestionById(q.id).getOptById(response.getString("oid"));
                 int optloc = response.getInt("opos");

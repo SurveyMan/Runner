@@ -75,17 +75,15 @@ public class LocalResponseManager extends AbstractResponseManager {
         String responseBody = null;
         try {
             responseBody = httpclient.execute(request, responseHandler);
-        } catch (IOException e) { Runner.LOGGER.warn(e); }
+        } catch (IOException e) {
+//            Runner.LOGGER.warn(e);
+        }
 
         return responseBody;
     }
 
     @Override
-    public int addResponses(
-            Survey survey,
-            ITask task)
-            throws SurveyException
-    {
+    public int addResponses(Survey survey, ITask task) throws SurveyException {
         int botResponsesToAdd = 0, validResponsesToAdd = 0;
         Record r = null;
         try {
@@ -99,29 +97,7 @@ public class LocalResponseManager extends AbstractResponseManager {
             for (Server.IdResponseTuple tupe : tuples) {
                 SurveyResponse sr = parseResponse(tupe.id, tupe.xml, survey, r, null);
                 assert sr!=null;
-                boolean valid =
-                switch (r.classifier) {
-                    case ENTROPY:
-                        valid = QCMetrics.entropyClassification(
-                                survey,
-                                sr,
-                                new ArrayList<SurveyResponse>(r.getAllResponses()),
-                                r.smoothing,
-                                r.alpha
-                        );
-                        break;
-                    case LOG_LIKELIHOOD:
-                        valid = QCMetrics.logLikelihoodClassification(
-                                survey,
-                                sr,
-                                new ArrayList<SurveyResponse>(r.getAllResponses()),
-                                r.smoothing,
-                                r.alpha
-                        );
-                        break;
-                    default:
-                        throw new RuntimeException("Unknown classification metric: " + r.classifier.name());
-                }
+                boolean valid = r.classifier.classifyResponse(sr);
                 if (valid) {
                     r.addValidResponse(sr);
                     r.removeBotResponse(sr);
@@ -137,9 +113,9 @@ public class LocalResponseManager extends AbstractResponseManager {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-        if (validResponsesToAdd>0 || botResponsesToAdd>0)
-            Runner.LOGGER.info(String.format("%d responses total. %d valid responses added. %d invalid responses added."
-                    , r.getNumValidResponses() + r.getNumBotResponses(), validResponsesToAdd, botResponsesToAdd));
+//        if (validResponsesToAdd>0 || botResponsesToAdd>0)
+//            Runner.LOGGER.info(String.format("%d responses total. %d valid responses added. %d invalid responses added."
+//                    , r.getNumValidResponses() + r.getNumBotResponses(), validResponsesToAdd, botResponsesToAdd));
         return validResponsesToAdd;
     }
 

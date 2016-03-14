@@ -14,7 +14,7 @@ import java.util.Properties;
 
 public abstract class AbstractLibrary implements Serializable {
 
-    public static Logger LOGGER = Runner.LOGGER;
+//    public static Logger LOGGER = Runner.LOGGER;
     public Properties props;
     public static final String fileSep = File.separator;
 
@@ -56,7 +56,7 @@ public abstract class AbstractLibrary implements Serializable {
             if (! new File(BONUS_DATA).exists())
                 new File(BONUS_DATA).createNewFile();
         } catch (IOException ex) {
-            Runner.LOGGER.fatal(ex);
+//            Runner.LOGGER.fatal(ex);
         }
     }
 
@@ -84,10 +84,10 @@ public abstract class AbstractLibrary implements Serializable {
             out.flush();
             out.close();
         } catch (FileNotFoundException e) {
-            Runner.LOGGER.fatal(e);
+//            Runner.LOGGER.fatal(e);
             System.exit(1);
         } catch (IOException io) {
-            Runner.LOGGER.fatal(io);
+//            Runner.LOGGER.fatal(io);
             System.exit(1);
         }
     }

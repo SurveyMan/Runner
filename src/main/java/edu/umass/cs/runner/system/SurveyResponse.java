@@ -56,7 +56,7 @@ public class SurveyResponse extends edu.umass.cs.surveyman.analyses.SurveyRespon
         this.srid = wID;
     }
 
-    public SurveyResponse(SurveyResponse surveyResponse) {
+    public SurveyResponse(edu.umass.cs.surveyman.analyses.SurveyResponse surveyResponse) {
         this(surveyResponse.getSurvey(), surveyResponse.getSrid());
     }
 

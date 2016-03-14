@@ -15,6 +15,8 @@ import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.runner.system.Parameters;
 import edu.umass.cs.runner.system.SurveyResponse;
 import edu.umass.cs.surveyman.qc.QCMetrics;
+import edu.umass.cs.surveyman.qc.classifiers.EntropyClassifier;
+import edu.umass.cs.surveyman.qc.classifiers.LogLikelihoodClassifier;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +37,7 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
-    private static final Logger LOGGER = Runner.LOGGER;
+//    private static final Logger LOGGER = Runner.LOGGER;
     protected final PropertiesClientConfig config;
     protected final RequesterService service;
     final protected static long maxAutoApproveDelay = 2592000l;
@@ -56,7 +58,7 @@ public class MturkResponseManager extends AbstractResponseManager {
             int waittime)
     {
         if (waittime > MturkResponseManager.maxwaittime){
-          LOGGER.warn(String.format("Wait time in %s has exceeded max wait time. Cancelling request.", name));
+//          LOGGER.warn(String.format("Wait time in %s has exceeded max wait time. Cancelling request.", name));
           return true;
         } else return false;
     }
@@ -70,18 +72,18 @@ public class MturkResponseManager extends AbstractResponseManager {
             synchronized (service) {
                 try {
                     HIT hit = service.getHIT(taskId);
-                    LOGGER.info(String.format("Retrieved HIT %s", hit.getHITId()));
+//                    LOGGER.info(String.format("Retrieved HIT %s", hit.getHITId()));
                     return new MturkTask(hit);
                 } catch (InternalServiceException ise) {
                     if (overTime(name, waittime)) {
-                        LOGGER.error(String.format("%s ran over time", name));
+//                        LOGGER.error(String.format("%s ran over time", name));
                         return null;
                     }
-                    LOGGER.warn(format("{0} {1}", name, ise));
+//                    LOGGER.warn(format("{0} {1}", name, ise));
                     chill(waittime);
                     waittime *= 2;
                 } catch (ObjectDoesNotExistException odnee) {
-                    LOGGER.warn(format("{0} {1}", name, odnee));
+//                    LOGGER.warn(format("{0} {1}", name, odnee));
                 }
             }
         }
@@ -99,10 +101,10 @@ public class MturkResponseManager extends AbstractResponseManager {
                     List<Assignment> assignments = new LinkedList<Assignment>();
                     boolean addAll = assignments.addAll(Arrays.asList(hitAssignments));
                     if (addAll)
-                        LOGGER.info(String.format("Retrieved %d assignments for HIT %s", hitAssignments.length, hit.getHITId()));
+//                        LOGGER.info(String.format("Retrieved %d assignments for HIT %s", hitAssignments.length, hit.getHITId()));
                     return assignments;
                 } catch (InternalServiceException ise) {
-                  LOGGER.warn(format("{0} {1}", name, ise));
+//                  LOGGER.warn(format("{0} {1}", name, ise));
                   chill(waittime); 
                   waittime *= 2;
                 }
@@ -126,7 +128,7 @@ public class MturkResponseManager extends AbstractResponseManager {
                 service.extendHIT(taskId, maxAssignmentsIncrement, expirationIncrementMillis / 1000);
                 return true;
             } catch (InternalServiceException ise) {
-                LOGGER.warn(format("{0} {1}", name, ise));
+//                LOGGER.warn(format("{0} {1}", name, ise));
                 if (overTime(name, waitTime))
                     return false;
                 chill(waitTime);
@@ -146,25 +148,25 @@ public class MturkResponseManager extends AbstractResponseManager {
         while (true){
             try {
                 Record r = getRecord(survey);
-                Runner.LOGGER.info("All tasks for this record:" + r.getAllTasks().length);
+//                Runner.LOGGER.info("All tasks for this record:" + r.getAllTasks().length);
                 if (r.getAllTasks().length==0){
-                    Runner.LOGGER.info("No tasks for record " + r.rid);
+//                    Runner.LOGGER.info("No tasks for record " + r.rid);
                     return;
                 }
                 for (ITask task : r.getAllTasks()) {
                     Assignment[] assignments = service.getAllAssignmentsForHIT(task.getTaskId());
-                    Runner.LOGGER.info("all assignments for this record:" + assignments.length);
+//                    Runner.LOGGER.info("all assignments for this record:" + assignments.length);
                     String assignmentId = "";
                     for (Assignment a : assignments) {
                         if (a.getWorkerId().equals(sr.getSrid())) {
                             service.grantBonus(sr.getSrid(), amount, assignmentId, "For partial work completed.");
-                            Runner.LOGGER.info(String.format("Granted worker %s bonus %f for assignment %s in survey %s"
-                                    , sr.getSrid(), amount, assignmentId, survey.sourceName));
+//                            Runner.LOGGER.info(String.format("Granted worker %s bonus %f for assignment %s in survey %s"
+//                                    , sr.getSrid(), amount, assignmentId, survey.sourceName));
                         }
                     }
                 }
             } catch (InternalServiceException ise) {
-                LOGGER.warn(format("{0} {1}", name, ise));
+//                LOGGER.warn(format("{0} {1}", name, ise));
                 if (overTime(name, waitTime)){
 
                     return;
@@ -224,10 +226,10 @@ public class MturkResponseManager extends AbstractResponseManager {
                     service.forceExpireHIT(task.getTaskId());
                     return true;
                 }catch(InternalServiceException ise){
-                  LOGGER.warn(MessageFormat.format("{0} {1}", name, ise));
+//                  LOGGER.warn(MessageFormat.format("{0} {1}", name, ise));
                   chill(1);
                 }catch(ObjectDoesNotExistException odne) {
-                  LOGGER.warn(MessageFormat.format("{0} {1}", name, odne));
+//                  LOGGER.warn(MessageFormat.format("{0} {1}", name, odne));
                   return false;
                 }
             }
@@ -242,7 +244,7 @@ public class MturkResponseManager extends AbstractResponseManager {
                 try {
                     return service.getWebsiteURL();
                 } catch (InternalServiceException ise) {
-                    LOGGER.warn(MessageFormat.format("{0} {1}", name, ise));
+//                    LOGGER.warn(MessageFormat.format("{0} {1}", name, ise));
                   chill(3); 
                 }
             }
@@ -263,7 +265,7 @@ public class MturkResponseManager extends AbstractResponseManager {
             throws ParseException,
             SurveyException
     {
-        Runner.LOGGER.info("WebsiteURL:\t"+getWebsiteURL());
+//        Runner.LOGGER.info("WebsiteURL:\t"+getWebsiteURL());
         System.out.println(getWebsiteURL());
         String name = "createHIT";
         int waittime = 1;
@@ -287,7 +289,7 @@ public class MturkResponseManager extends AbstractResponseManager {
                     return hitid.getHITId();
                 } catch (InternalServiceException ise) {
                     String info = MessageFormat.format("{0} {1}", name, ise);
-                    LOGGER.info(info);
+//                    LOGGER.info(info);
                     System.out.println(info);
                     if (overTime(name, waittime)) {
                       throw new CreateHITException(title);
@@ -295,7 +297,7 @@ public class MturkResponseManager extends AbstractResponseManager {
                     chill(waittime);
                     waittime *= 2;
                 } catch (ObjectAlreadyExistsException e) {
-                    LOGGER.info(MessageFormat.format("{0} {1}", name, e));
+//                    LOGGER.info(MessageFormat.format("{0} {1}", name, e));
                     chill(waittime);
                     waittime *= 2;
                 }
@@ -326,10 +328,10 @@ public class MturkResponseManager extends AbstractResponseManager {
                     HIT hit = service.getHIT(task.getTaskId());
                     return hit.getNumberOfAssignmentsAvailable();
                 }catch(InternalServiceException ise){
-                    LOGGER.warn(MessageFormat.format("{0} {1}", name, ise));
+//                    LOGGER.warn(MessageFormat.format("{0} {1}", name, ise));
                     chill(1);
                 }catch(ObjectDoesNotExistException odne) {
-                    LOGGER.warn(MessageFormat.format("{0} {1}", name, odne));
+//                    LOGGER.warn(MessageFormat.format("{0} {1}", name, odne));
                     return 0;
                 }
             }
@@ -346,18 +348,18 @@ public class MturkResponseManager extends AbstractResponseManager {
                     service.extendHIT(id, n, minExpirationIncrementInSeconds);
                     return task;
                 }catch(InternalServiceException ise){
-                    LOGGER.warn(MessageFormat.format("{0} {1}", name, ise));
+//                    LOGGER.warn(MessageFormat.format("{0} {1}", name, ise));
                     if (waittime > maxWaitTimeInSeconds) {
                         String msg = String.format("WARNING: Exceeded max wait time in %s.%s..."
                                 , name.getEnclosingClass().getName()
                                 , name.getEnclosingMethod().getName());
-                        LOGGER.warn(msg);
+//                        LOGGER.warn(msg);
                         System.err.println(msg);
                     }
                     chill(waittime);
                     waittime *= 2;
                 }catch(ObjectDoesNotExistException odne) {
-                    LOGGER.warn(MessageFormat.format("{0} {1}", name, odne));
+//                    LOGGER.warn(MessageFormat.format("{0} {1}", name, odne));
                     return null;
                 }
             }
@@ -377,13 +379,13 @@ public class MturkResponseManager extends AbstractResponseManager {
                         String msg = String.format("WARNING: Exceeded max wait time in %s.%s..."
                                 , clz.getEnclosingClass().getName()
                                 , clz.getEnclosingMethod().getName());
-                        LOGGER.warn(msg);
+//                        LOGGER.warn(msg);
                         System.err.println(msg);
                     }
                     chill(waittime);
                     waittime *= 2;
                 } catch(ObjectDoesNotExistException odne) {
-                    LOGGER.warn(MessageFormat.format("{0} {1}", clz, odne));
+//                    LOGGER.warn(MessageFormat.format("{0} {1}", clz, odne));
                     return false;
                 }
             }
@@ -395,26 +397,12 @@ public class MturkResponseManager extends AbstractResponseManager {
             Record record)
             throws SurveyException
     {
-        switch (record.classifier) {
-            case LOG_LIKELIHOOD:
-                return QCMetrics.logLikelihoodClassification(
-                        record.survey,
-                        surveyResponse,
-                        new ArrayList<SurveyResponse>(record.getAllResponses()),
-                        record.smoothing,
-                        record.alpha
-                );
-            case ENTROPY:
-                return QCMetrics.entropyClassification(
-                        record.survey,
-                        surveyResponse,
-                        new ArrayList<SurveyResponse>(record.getAllResponses()),
-                        record.smoothing,
-                        record.alpha
-                );
-            default:
-                throw new RuntimeException("Unknown classifier: "+record.classifier);
-        }
+        String classname = record.classifier.getClass().getName();
+        if (classname.equals(LogLikelihoodClassifier.class.getName()))
+                return record.classifier.classifyResponse(surveyResponse);
+        else if (classname.equals(EntropyClassifier.class.getName()))
+                return record.classifier.classifyResponse(surveyResponse);
+        else throw new RuntimeException("Unknown classifier: "+classname);
     }
 
     public int addResponses(
@@ -446,7 +434,7 @@ public class MturkResponseManager extends AbstractResponseManager {
                         SurveyResponse sr = parseResponse(a.getWorkerId(), a.getAnswer(), survey, record, otherValues);
                         assert !sr.otherValues.isEmpty();
                         boolean valid = isValid(sr, record);
-                        LOGGER.debug(String.format("Response %s valid: %b", sr.getSrid(), valid));
+//                        LOGGER.debug(String.format("Response %s valid: %b", sr.getSrid(), valid));
                         assert valid == (sr.getScore() >= sr.getThreshold());
                         if (valid) {
                             record.addValidResponse(sr);
@@ -463,9 +451,9 @@ public class MturkResponseManager extends AbstractResponseManager {
             }
             success=true;
         }
-        if (validResponsesToAdd>0 || botResponsesToAdd> 0)
-            LOGGER.info(String.format("%d responses total. %d valid responses added. %d invalid responses added."
-                    , record.getNumValidResponses()+record.getNumBotResponses(), validResponsesToAdd, botResponsesToAdd));
+//        if (validResponsesToAdd>0 || botResponsesToAdd> 0)
+//            LOGGER.info(String.format("%d responses total. %d valid responses added. %d invalid responses added."
+//                    , record.getNumValidResponses()+record.getNumBotResponses(), validResponsesToAdd, botResponsesToAdd));
         return validResponsesToAdd;
     }
 }
