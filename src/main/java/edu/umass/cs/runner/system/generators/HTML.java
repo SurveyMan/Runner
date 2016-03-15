@@ -57,7 +57,7 @@ public class HTML {
             IllegalAccessException
     {
         String htmlFileName = Record.getHtmlFileName(survey);
-//        Runner.LOGGER.info(String.format("Source html found at %s", htmlFileName));
+        Runner.LOGGER.info(String.format("Source html found at %s", htmlFileName));
         BufferedWriter bw = new BufferedWriter(new FileWriter(htmlFileName));
         bw.write(html);
         bw.close();
@@ -98,16 +98,16 @@ public class HTML {
                     , Slurpie.slurp(AbstractLibrary.CUSTOMCSS, true)
             );
         } catch (FileNotFoundException ex) {
-//            Runner.LOGGER.fatal(ex);
+            Runner.LOGGER.fatal(ex);
             System.exit(-1);
         } catch (IOException ex) {
-//            Runner.LOGGER.fatal(ex);
+            Runner.LOGGER.fatal(ex);
             System.exit(-1);
         }
         try{
             spitHTMLToFile(html, record.survey);
         } catch (IOException io) {
-//            Runner.LOGGER.warn(io);
+            Runner.LOGGER.warn(io);
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {

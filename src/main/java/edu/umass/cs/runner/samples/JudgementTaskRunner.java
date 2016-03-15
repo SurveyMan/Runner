@@ -4,6 +4,7 @@ import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.system.backend.KnownBackendType;
 import edu.umass.cs.runner.system.backend.known.localhost.Server;
 import edu.umass.cs.runner.system.backend.known.localhost.server.WebServerException;
+import edu.umass.cs.surveyman.qc.Classifier;
 import edu.umass.cs.surveyman.samples.JudgementTask;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
@@ -23,7 +24,7 @@ public class JudgementTaskRunner {
         Runner.init(KnownBackendType.LOCALHOST);
         Server.startServe();
         Survey survey = JudgementTask.makeSurvey();
-        Runner.runAll(survey, Runner.getClassifier("lpo", survey, false, 0.05, 2), false, 0.05, true);
+        Runner.runAll(survey, Classifier.LOG_LIKELIHOOD, false, 0.05, true);
         Server.endServe();
     }
 }

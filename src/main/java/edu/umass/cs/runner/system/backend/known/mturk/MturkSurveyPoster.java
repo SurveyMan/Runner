@@ -35,7 +35,7 @@ public class MturkSurveyPoster implements ISurveyPoster {
         HIT hit = ((MturkTask) mturkTask).hit;
         String url = ((MturkResponseManager) responseManager).getWebsiteURL()+"/mturk/preview?groupId="+hit.getHITTypeId();
         if (urlnotLogged) {
-//            Runner.LOGGER.info(url);
+            Runner.LOGGER.info(url);
             urlnotLogged = false;
         }
         return url;
@@ -54,7 +54,7 @@ public class MturkSurveyPoster implements ISurveyPoster {
                     props.getProperty(Parameters.TITLE)
                     , props.getProperty(Parameters.DESCRIPTION)
                     , props.getProperty(Parameters.KEYWORDS)
-                    , MturkXML.getXMLString(record.qcMetrics)
+                    , MturkXML.getXMLString(record.survey)
                     , Double.parseDouble(props.getProperty(Parameters.REWARD))
                     , Long.parseLong(props.getProperty(Parameters.ASSIGNMENT_DURATION))
                     , MturkResponseManager.maxAutoApproveDelay

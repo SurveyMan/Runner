@@ -11,7 +11,7 @@ public class BoxedBool {
         String source = "";
         if (caller!=null)
             source = caller.getMethodName();
-//        Runner.LOGGER.info(String.format("Interrupt in %s: %s", source, reason));
+        Runner.LOGGER.info(String.format("Interrupt in %s: %s", source, reason));
         this.interrupt = bool;
     }
     public void setInterrupt(boolean bool, String reason) {

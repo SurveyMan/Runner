@@ -8,12 +8,11 @@ import edu.umass.cs.runner.system.backend.known.mturk.generators.MturkXML;
 import edu.umass.cs.runner.system.generators.HTML;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
-import edu.umass.cs.surveyman.qc.QCMetrics;
-import edu.umass.cs.surveyman.qc.classifiers.AllClassifier;
-import edu.umass.cs.surveyman.qc.respondents.RandomRespondent;
+import edu.umass.cs.surveyman.qc.RandomRespondent;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import junit.framework.Assert;
+import org.apache.commons.lang.ObjectUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -39,8 +38,7 @@ public class SystemTest extends TestLog {
                 CSVParser csvParser = new CSVParser(new CSVLexer(testsFiles[i], String.valueOf(separators[i])));
                 Survey survey = csvParser.parse();
                 MturkLibrary.dumpSampleProperties();
-                QCMetrics qcMetrics = new QCMetrics(survey, new AllClassifier(survey));
-                Record record = new Record(qcMetrics, new MturkLibrary(), KnownBackendType.MTURK);
+                Record record = new Record(survey, new MturkLibrary(), KnownBackendType.MTURK);
                 HTML.getHTMLString(record, new MturkHTML());
                 LOGGER.info(testsFiles[i]+" generated IHTML successfully.");
             }
@@ -56,9 +54,7 @@ public class SystemTest extends TestLog {
             for (int i = 0 ; i < testsFiles.length ; i++) {
                 currentFile = testsFiles[i];
                 CSVParser csvParser = new CSVParser(new CSVLexer(currentFile, String.valueOf(separators[i])));
-                Survey survey = csvParser.parse();
-                QCMetrics qcMetrics = new QCMetrics(survey, new AllClassifier(survey));
-                MturkXML.getXMLString(qcMetrics);
+                MturkXML.getXMLString(csvParser.parse());
                 LOGGER.info(testsFiles[i]+" generated IHTML successfully.");
             }
         } catch (SurveyException se) {
@@ -80,7 +76,7 @@ public class SystemTest extends TestLog {
                 RandomRespondent rr = new RandomRespondent(survey, RandomRespondent.AdversaryType.UNIFORM);
                 String headers = ResponseWriter.outputHeaders(survey, new ArrayList<String>());
                 String output = ResponseWriter.outputSurveyResponse(survey,
-                        new SurveyResponse(new SurveyResponse(rr.getResponse())));
+                        new SurveyResponse((SurveyResponse) rr.getResponse()));
                 new SurveyResponse(survey, "").readSurveyResponses(survey, new StringReader(headers + output));
             } catch (SurveyException se) {
                 if (super.outcome[i])
@@ -102,8 +98,7 @@ public class SystemTest extends TestLog {
         CSVParser csvParser = new CSVParser(new CSVLexer(testsFiles[0], String.valueOf(separators[0])));
         Survey survey = csvParser.parse();
         MturkLibrary.dumpSampleProperties();
-        QCMetrics qcMetrics = new QCMetrics(survey, new AllClassifier(survey));
-        Record record = new Record(qcMetrics, new MturkLibrary(), KnownBackendType.MTURK);
+        Record record = new Record(survey, new MturkLibrary(), KnownBackendType.MTURK);
         String serializedFileName = record.serializeRecord();
         Record deserializedRecord = Record.deserializeRecord(serializedFileName);
         try {

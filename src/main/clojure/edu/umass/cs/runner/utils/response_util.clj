@@ -1,5 +1,3 @@
-(comment
-
 (ns
   ^{:author etosch
     :doc "Utilities for manipulating survey responses for data analysis."}
@@ -7,7 +5,7 @@
   (:import
     (edu.umass.cs.surveyman.analyses SurveyResponse IQuestionResponse OptTuple)
     (edu.umass.cs.surveyman.input AbstractParser)
-    (edu.umass.cs.surveyman.qc.respondents RandomRespondent RandomRespondent$AdversaryType QCMetrics)
+    (edu.umass.cs.surveyman.qc RandomRespondent RandomRespondent$AdversaryType QCMetrics)
     (edu.umass.cs.surveyman.survey Survey Question SurveyDatum)
     (java.util List Map))
   )
@@ -199,6 +197,4 @@
   (contains? (set (flatten (map (fn [^IQuestionResponse qr] (map #(.c %) (.getOpts qr))) (get-true-responses sr))))
     c
     )
-  )
-
   )

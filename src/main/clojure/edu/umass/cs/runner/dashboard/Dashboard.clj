@@ -1,5 +1,3 @@
-(comment
-
 (ns edu.umass.cs.runner.dashboard.Dashboard
   (:gen-class
     :name edu.umass.cs.runner.dashboard.Dashboard
@@ -95,5 +93,4 @@
   [& args]
   ;; This is called when we have the Runner running a survey in another process, and we want to monitor it in a
   ;; separate process.
-  )
   )
