@@ -5,6 +5,7 @@ import edu.umass.cs.runner.Record;
 import edu.umass.cs.runner.system.generators.HTML;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkLibrary;
 import edu.umass.cs.runner.utils.Slurpie;
+import edu.umass.cs.surveyman.qc.QCMetrics;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 
@@ -13,11 +14,11 @@ import java.io.*;
 public class MturkXML {
 
     public static final int maxQuestionXMLLength = 131072;
-    
-    public static String getXMLString(Survey survey) throws SurveyException {
+
+    public static String getXMLString(QCMetrics qcMetrics) throws SurveyException {
         String retval;
         try {
-            Record record = new Record(survey, new MturkLibrary(), KnownBackendType.MTURK);
+            Record record = new Record(qcMetrics, new MturkLibrary(), KnownBackendType.MTURK);
             retval = String.format(Slurpie.slurp(MturkLibrary.XMLSKELETON), HTML.getHTMLString(record, new MturkHTML()));
             if (retval.length() > maxQuestionXMLLength)
                 throw new MaxXMLLengthException(retval.length());

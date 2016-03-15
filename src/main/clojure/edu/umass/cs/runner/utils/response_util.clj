@@ -5,7 +5,8 @@
   (:import
     (edu.umass.cs.surveyman.analyses SurveyResponse IQuestionResponse OptTuple)
     (edu.umass.cs.surveyman.input AbstractParser)
-    (edu.umass.cs.surveyman.qc RandomRespondent RandomRespondent$AdversaryType QCMetrics)
+    (edu.umass.cs.surveyman.qc QCMetrics)
+    (edu.umass.cs.surveyman.qc.respondents RandomRespondent RandomRespondent$AdversaryType)
     (edu.umass.cs.surveyman.survey Survey Question SurveyDatum)
     (java.util List Map))
   )

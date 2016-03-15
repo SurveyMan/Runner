@@ -54,7 +54,7 @@ public class MturkSurveyPoster implements ISurveyPoster {
                     props.getProperty(Parameters.TITLE)
                     , props.getProperty(Parameters.DESCRIPTION)
                     , props.getProperty(Parameters.KEYWORDS)
-                    , MturkXML.getXMLString(record.survey)
+                    , MturkXML.getXMLString(record.qcMetrics)
                     , Double.parseDouble(props.getProperty(Parameters.REWARD))
                     , Long.parseLong(props.getProperty(Parameters.ASSIGNMENT_DURATION))
                     , MturkResponseManager.maxAutoApproveDelay

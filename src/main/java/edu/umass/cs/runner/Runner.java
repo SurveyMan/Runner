@@ -18,13 +18,17 @@ import edu.umass.cs.runner.system.backend.known.mturk.MturkResponseManager;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkSurveyPoster;
 import edu.umass.cs.runner.utils.ArgReader;
 import edu.umass.cs.runner.utils.Slurpie;
+import edu.umass.cs.surveyman.SurveyMan;
 import edu.umass.cs.surveyman.analyses.AbstractRule;
 import edu.umass.cs.surveyman.analyses.StaticAnalysis;
 import edu.umass.cs.surveyman.input.AbstractParser;
 import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
 import edu.umass.cs.surveyman.input.json.JSONParser;
-import edu.umass.cs.surveyman.qc.Classifier;
+import edu.umass.cs.surveyman.qc.QCMetrics;
+import edu.umass.cs.surveyman.qc.classifiers.AbstractClassifier;
+import edu.umass.cs.surveyman.qc.classifiers.AllClassifier;
+import edu.umass.cs.surveyman.qc.classifiers.ClusterClassifier;
 import edu.umass.cs.surveyman.survey.Question;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
@@ -432,9 +436,6 @@ public class Runner {
                    NoSuchMethodException,
                    IOException,
                    InterruptedException, SurveyException {
-        Classifier classifier = Classifier.valueOf(((String) ns.get("classifier")).toUpperCase());
-        boolean smoothing = Boolean.valueOf((String) ns.get("smoothing"));
-        double alpha = Double.valueOf((String) ns.get("alpha"));
         boolean breakoff = Boolean.valueOf((String) ns.get("breakoff"));
         boolean runDashboardp = Boolean.valueOf((String) ns.get("dashboard"));
         AbstractParser parser;
@@ -444,6 +445,13 @@ public class Runner {
             parser = new JSONParser(Slurpie.slurp(s));
         else throw new RuntimeException("Input files must have csv or json extensions.");
         Survey survey = parser.parse();
+        AbstractClassifier classifier = SurveyMan.resolveClassifier(
+                survey,
+                ((String) ns.get("classifier")).toUpperCase(),
+                2,
+                Double.valueOf((String) ns.get("alpha")),
+                Boolean.valueOf((String) ns.get("smoothing"))
+	);
         // Kind of a hack.
         if (!breakoff)
             for (Question q : survey.questions)
@@ -455,7 +463,7 @@ public class Runner {
 
     public static void runAll(
             Survey survey,
-            Classifier classifier,
+            AbstractClassifier classifier,
             boolean smoothing,
             double alpha,
             boolean runDashboardp)
@@ -466,7 +474,7 @@ public class Runner {
             InterruptedException
     {
         // create and store the record
-        final Record record = new Record(survey, library, classifier, smoothing, alpha, backendType);
+        final Record record = new Record(new QCMetrics(survey, classifier),  library, backendType);
         AbstractResponseManager.putRecord(survey, record);
         Runner.alpha = alpha;
         Runner.smoothing = smoothing;

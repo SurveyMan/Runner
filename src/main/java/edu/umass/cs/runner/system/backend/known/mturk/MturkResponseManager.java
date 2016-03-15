@@ -15,6 +15,8 @@ import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.runner.system.Parameters;
 import edu.umass.cs.runner.system.SurveyResponse;
 import edu.umass.cs.surveyman.qc.QCMetrics;
+import edu.umass.cs.surveyman.qc.classifiers.EntropyClassifier;
+import edu.umass.cs.surveyman.qc.classifiers.LogLikelihoodClassifier;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.apache.logging.log4j.Logger;
@@ -103,7 +105,7 @@ public class MturkResponseManager extends AbstractResponseManager {
                     return assignments;
                 } catch (InternalServiceException ise) {
                   LOGGER.warn(format("{0} {1}", name, ise));
-                  chill(waittime); 
+                  chill(waittime);
                   waittime *= 2;
                 }
             }
@@ -243,7 +245,7 @@ public class MturkResponseManager extends AbstractResponseManager {
                     return service.getWebsiteURL();
                 } catch (InternalServiceException ise) {
                     LOGGER.warn(MessageFormat.format("{0} {1}", name, ise));
-                  chill(3); 
+                  chill(3);
                 }
             }
         }
@@ -395,26 +397,12 @@ public class MturkResponseManager extends AbstractResponseManager {
             Record record)
             throws SurveyException
     {
-        switch (record.classifier) {
-            case LOG_LIKELIHOOD:
-                return QCMetrics.logLikelihoodClassification(
-                        record.survey,
-                        surveyResponse,
-                        new ArrayList<SurveyResponse>(record.getAllResponses()),
-                        record.smoothing,
-                        record.alpha
-                );
-            case ENTROPY:
-                return QCMetrics.entropyClassification(
-                        record.survey,
-                        surveyResponse,
-                        new ArrayList<SurveyResponse>(record.getAllResponses()),
-                        record.smoothing,
-                        record.alpha
-                );
-            default:
-                throw new RuntimeException("Unknown classifier: "+record.classifier);
-        }
+        String classname = record.classifier.getClass().getName();
+        if (classname.equals(LogLikelihoodClassifier.class.getName()))
+                return record.classifier.classifyResponse(surveyResponse);
+        else if (classname.equals(EntropyClassifier.class.getName()))
+                return record.classifier.classifyResponse(surveyResponse);
+        else throw new RuntimeException("Unknown classifier: "+classname);
     }
 
     public int addResponses(
