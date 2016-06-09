@@ -22,8 +22,8 @@ public class LocalLibrary extends AbstractLibrary {
                 super.props = new Properties();
                 super.props.load(new FileReader(propertiesURL));
             } catch (FileNotFoundException e) {
-//                Runner.LOGGER.warn(e);
-//                Runner.LOGGER.info(e.getLocalizedMessage()+"\nUsing default value instead...");
+                Runner.LOGGER.warn(e);
+                Runner.LOGGER.info(e.getLocalizedMessage()+"\nUsing default value instead...");
                 init();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -62,7 +62,7 @@ public class LocalLibrary extends AbstractLibrary {
                         case 1:
                             params = Slurpie.slurp("params.properties");
                             assert !params.isEmpty() : "params.properties is empty";
-//                            LOGGER.debug(params);
+                            LOGGER.debug(params);
                             fileWriter = new FileWriter(AbstractLibrary.PARAMS);
                             fileWriter.write(params);
                             init();
@@ -81,14 +81,14 @@ public class LocalLibrary extends AbstractLibrary {
                     }
                 }
             } catch (IOException e) {
-//                Runner.LOGGER.fatal(e);
+                Runner.LOGGER.fatal(e);
                 System.err.println(e.getMessage());
                 System.exit(1);
             } finally {
                 scanner.close();
             }
         }catch(IOException io){
-//            Runner.LOGGER.fatal(io);
+            Runner.LOGGER.fatal(io);
             System.err.println(io.getMessage());
             System.exit(1);
         }
@@ -109,9 +109,9 @@ public class LocalLibrary extends AbstractLibrary {
             if (thisBackendHeaders.equals(thatBackendHeaders))
                 return true;
             else {
-//                LOGGER.debug(String.format("Backend headers not equal (%s vs. %s)",
-//                        StringUtils.join(thisBackendHeaders, ","),
-//                        StringUtils.join(thatBackendHeaders, ",")));
+                LOGGER.debug(String.format("Backend headers not equal (%s vs. %s)",
+                        StringUtils.join(thisBackendHeaders, ","),
+                        StringUtils.join(thatBackendHeaders, ",")));
                 return false;
             }
         } else return false;

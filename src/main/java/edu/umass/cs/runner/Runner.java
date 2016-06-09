@@ -18,6 +18,7 @@ import edu.umass.cs.runner.system.backend.known.mturk.MturkResponseManager;
 import edu.umass.cs.runner.system.backend.known.mturk.MturkSurveyPoster;
 import edu.umass.cs.runner.utils.ArgReader;
 import edu.umass.cs.runner.utils.Slurpie;
+import edu.umass.cs.surveyman.SurveyMan;
 import edu.umass.cs.surveyman.analyses.AbstractRule;
 import edu.umass.cs.surveyman.analyses.StaticAnalysis;
 import edu.umass.cs.surveyman.input.AbstractParser;
@@ -27,7 +28,6 @@ import edu.umass.cs.surveyman.input.json.JSONParser;
 import edu.umass.cs.surveyman.qc.QCMetrics;
 import edu.umass.cs.surveyman.qc.classifiers.AbstractClassifier;
 import edu.umass.cs.surveyman.qc.classifiers.AllClassifier;
-import edu.umass.cs.surveyman.qc.classifiers.Classifiers;
 import edu.umass.cs.surveyman.qc.classifiers.ClusterClassifier;
 import edu.umass.cs.surveyman.survey.Question;
 import edu.umass.cs.surveyman.survey.Survey;
@@ -47,7 +47,7 @@ import java.util.*;
 
 public class Runner {
 
-//    public static final Logger LOGGER = LogManager.getLogger(Runner.class.getName());
+    public static final Logger LOGGER = LogManager.getLogger(Runner.class.getName());
     private static long timeSinceLastNotice = System.currentTimeMillis();
     public static KnownBackendType backendType;
     public static AbstractResponseManager responseManager;
@@ -136,8 +136,8 @@ public class Runner {
         for (ITask hit : record.getAllTasks()) {
             hiturl = surveyPoster.makeTaskURL(responseManager, hit);
             responsesAdded = responseManager.addResponses(survey, hit);
-//            if (responsesAdded > 0)
-//                LOGGER.debug(String.format("Added %d responses", responsesAdded));
+            if (responsesAdded > 0)
+                LOGGER.debug(String.format("Added %d responses", responsesAdded));
         }
 
         msg = String.format("Polling for responses for Tasks at %s (%d total; %d valid)"
@@ -147,7 +147,7 @@ public class Runner {
 
         if (System.currentTimeMillis() - timeSinceLastNotice > 1000000) {
             System.out.println(msg);
-//            LOGGER.info(msg);
+            LOGGER.info(msg);
             timeSinceLastNotice = System.currentTimeMillis();
         }
 
@@ -226,27 +226,27 @@ public class Runner {
                     sr.getSrid());
             if (!sr.isRecorded()) {
                 PrintWriter bw = null;
-//                LOGGER.info("Writing " + sr.getSrid() + "...");
+                LOGGER.info("Writing " + sr.getSrid() + "...");
                 try {
-//                    LOGGER.info(record.outputFileName);
+                    LOGGER.info(record.outputFileName);
                     File f = new File(record.outputFileName);
                     bw = new PrintWriter(new FileWriter(f, true));
                     if (! f.exists() || f.length()==0)
                         bw.print(ResponseWriter.outputHeaders(survey, record.library.getBackendHeaders()));
                     String txt = ResponseWriter.outputSurveyResponse(survey, sr);
-//                    LOGGER.info(txt);
+                    LOGGER.info(txt);
                     bw.print(txt);
                     bw.flush();
                     bw.close();
                     sr.setRecorded(true);
                 } catch (IOException ex) {
-//                    LOGGER.info(ex.getMessage());
-//                    LOGGER.warn(ex);
+                    LOGGER.info(ex.getMessage());
+                    LOGGER.warn(ex);
                 } finally {
                     try {
                         if (bw != null) bw.close();
                     } catch (Exception ex) {
-//                        LOGGER.warn(ex);
+                        LOGGER.warn(ex);
                     }
                 }
             }
@@ -276,7 +276,7 @@ public class Runner {
                     } catch (SurveyException e) {
                         e.printStackTrace();
                     } catch (NullPointerException npe) {
-//                        LOGGER.warn(npe);
+                        LOGGER.warn(npe);
                     }
                 } while (!interrupt.getInterrupt());
                     // clean up
@@ -303,7 +303,7 @@ public class Runner {
             do {
                 // Log every 5 times this thing is called:
                 if (numTimesCalled % 5 == 0) {
-//                    LOGGER.info(String.format("Runner Thread called %d times.", numTimesCalled));
+                    LOGGER.info(String.format("Runner Thread called %d times.", numTimesCalled));
                     numTimesCalled++;
                 }
                 if (!interrupt.getInterrupt()) {
@@ -319,7 +319,7 @@ public class Runner {
 
             String msg = "Fatal error: " + e.getMessage() + "\nExiting...";
             System.err.println(msg);
-//            LOGGER.fatal(e);
+            LOGGER.fatal(e);
             interrupt.setInterrupt(true,"Error detected in edu.umass.cs.runner.Runner.run",e.getStackTrace()[1]);
 
         } finally {
@@ -410,7 +410,7 @@ public class Runner {
                         exit(abstractResponseManager, record);
                         return;
                     } else if (choice==stopDashboardChoice) {
-//                        LOGGER.info("User cancelling dashboard service.");
+                        LOGGER.info("User cancelling dashboard service.");
                         try {
                             if (dashboardServer!=null)
                                 dashboardServer.stop();
@@ -425,34 +425,6 @@ public class Runner {
                 }
             }
         };
-    }
-
-    public static AbstractClassifier getClassifier(
-            String name,
-            Survey survey,
-            boolean smoothing,
-            double alpha,
-            int numClusters
-    ) {
-        switch (Classifiers.valueOf(name)) {
-            case ALL:
-                return new AllClassifier(survey, smoothing, alpha, numClusters);
-            case CLUSTER:
-                return new ClusterClassifier(survey, smoothing, alpha, numClusters);
-            case ENTROPY:
-                break;
-            case LINEAR:
-                break;
-            case LPO:
-                break;
-            case MAHALANOBIS:
-                break;
-            case NIPS2010:
-                break;
-            case STACKED:
-                break;
-        }
-        return null;
     }
 
     public static void runAll(
@@ -473,13 +445,13 @@ public class Runner {
             parser = new JSONParser(Slurpie.slurp(s));
         else throw new RuntimeException("Input files must have csv or json extensions.");
         Survey survey = parser.parse();
-        AbstractClassifier classifier = getClassifier(
-                ((String) ns.get("classifier")).toUpperCase(),
+        AbstractClassifier classifier = SurveyMan.resolveClassifier(
                 survey,
-                Boolean.valueOf((String) ns.get("smoothing")),
+                ((String) ns.get("classifier")).toUpperCase(),
+                2,
                 Double.valueOf((String) ns.get("alpha")),
-                2
-        );
+                Boolean.valueOf((String) ns.get("smoothing"))
+	);
         // Kind of a hack.
         if (!breakoff)
             for (Question q : survey.questions)
@@ -520,7 +492,7 @@ public class Runner {
         while (record.getAllTasks().length==0) {}
         for (ITask task : record.getAllTasks())
             msg.append("\n\t" + surveyPoster.makeTaskURL(responseManager, task));
-//        LOGGER.info(msg.toString());
+        LOGGER.info(msg.toString());
         System.out.println(msg.toString());
         runner.join();
         responder.join();
@@ -532,14 +504,13 @@ public class Runner {
             Record record)
     {
         // TODO(etosch): make this more java-like in the future.
-//        IFn require = Clojure.var("clojure.core", "require");
-//        require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
-//        IFn run = Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "-run");
-//        System.out.println(String.format(
-//                "To monitor the survey, navigate to:\n\thttp://localhost:%d/src/main/resources/debugger/Debug.html",
-//                (Long) Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "-getPort").invoke()));
-//        return (org.eclipse.jetty.server.Server) run.invoke(record);
-        return null;
+        IFn require = Clojure.var("clojure.core", "require");
+        require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
+        IFn run = Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "-run");
+        System.out.println(String.format(
+                "To monitor the survey, navigate to:\n\thttp://localhost:%d/src/main/resources/debugger/Debug.html",
+                (Long) Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "-getPort").invoke()));
+        return (org.eclipse.jetty.server.Server) run.invoke(record);
     }
 
     public static void main(
@@ -577,11 +548,11 @@ public class Runner {
                 Server.endServe();
 
             String msg = String.format("Shutting down. Execute this program with args %s to repeat.", Arrays.toString(args));
-//            LOGGER.info(msg);
+            LOGGER.info(msg);
 
         } catch (ArgumentParserException e) {
             System.err.println("FAILURE: "+e.getMessage());
-//            LOGGER.fatal(e);
+            LOGGER.fatal(e);
             argumentParser.printHelp();
         }
     }

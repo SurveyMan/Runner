@@ -11,7 +11,6 @@ import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import edu.umass.cs.surveyman.utils.Gensym;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
@@ -19,7 +18,7 @@ import java.util.*;
 
 public class Record implements Serializable {
 
-//    final private static Logger LOGGER = LogManager.getLogger("Runner");
+    final private static Logger LOGGER = Runner.LOGGER;
     final private static Gensym gensym = new Gensym(String.format("rec_%d", System.currentTimeMillis()));
 
     public String outputFileName;
@@ -45,7 +44,7 @@ public class Record implements Serializable {
         objectOutputStream.writeObject(this);
         objectOutputStream.close();
         fileOutputStream.close();
-//        LOGGER.info("Wrote record data to " + serializedFileName);
+        LOGGER.info("Wrote record data to " + serializedFileName);
         return serializedFileName;
     }
 
@@ -75,9 +74,9 @@ public class Record implements Serializable {
         this.qcMetrics = qcMetrics;
         try {
             boolean madeOutDir = (new File(AbstractLibrary.OUTDIR)).mkdir();
-//            LOGGER.debug(String.format("Made new ouput directory: %b", madeOutDir));
+            LOGGER.debug(String.format("Made new ouput directory: %b", madeOutDir));
             boolean madeLogdDir = (new File("logs")).mkdir();
-//            LOGGER.debug(String.format("Made new logs directory: %b", madeLogdDir));
+            LOGGER.debug(String.format("Made new logs directory: %b", madeLogdDir));
             File outfile = new File(String.format("%s%s%s_%s_%s.csv"
                     , AbstractLibrary.OUTDIR
                     , AbstractLibrary.fileSep
@@ -85,7 +84,7 @@ public class Record implements Serializable {
                     , qcMetrics.survey.sid
                     , AbstractLibrary.TIME));
             boolean madeOutFile = outfile.createNewFile();
-//            LOGGER.debug(String.format("Made new outputfile %s: %b", outfile, madeOutFile));
+            LOGGER.debug(String.format("Made new outputfile %s: %b", outfile, madeOutFile));
             File htmlFileName = new File(String.format("%s%slogs%s%s_%s_%s.html"
                     , (new File("")).getAbsolutePath()
                     , AbstractLibrary.fileSep
@@ -96,13 +95,13 @@ public class Record implements Serializable {
             boolean createdNewFile = false;
             if (! htmlFileName.exists())
                 createdNewFile = htmlFileName.createNewFile();
-//            LOGGER.debug(String.format("Created new HTML file %s: %b", htmlFileName.getAbsolutePath(), createdNewFile));
+            LOGGER.debug(String.format("Created new HTML file %s: %b", htmlFileName.getAbsolutePath(), createdNewFile));
             File recordDir = new File(this.RECORDDIR);
             boolean madeRecordDirs = false;
             if (! recordDir.exists())
                 madeRecordDirs = recordDir.mkdirs();
-//            LOGGER.debug(String.format("Created new record directory %s: %b", recordDir.getAbsolutePath(),
-//                    madeRecordDirs));
+            LOGGER.debug(String.format("Created new record directory %s: %b", recordDir.getAbsolutePath(),
+                    madeRecordDirs));
             this.outputFileName = outfile.getCanonicalPath();
             this.htmlFileName = htmlFileName.getCanonicalPath();
         } catch (IOException e) {
@@ -117,16 +116,16 @@ public class Record implements Serializable {
         this.classifier = qcMetrics.classifier;
         this.alpha = qcMetrics.classifier.alpha;
         this.expectedCost = computeExpectedCost();
-//        LOGGER.info(String.format("New record with id (%s) created for survey %s (%s)."
-//                , rid
-//                , survey.sourceName
-//                , survey.sid
-//        ));
+        LOGGER.info(String.format("New record with id (%s) created for survey %s (%s)."
+                , rid
+                , survey.sourceName
+                , survey.sid
+        ));
         try {
             this.serializeRecord();
         } catch (IOException io) {
-//            LOGGER.warn(String.format("Attempt to serialize record %s in constructor failed.,", this.rid));
-//            LOGGER.warn(io);
+            LOGGER.warn(String.format("Attempt to serialize record %s in constructor failed.,", this.rid));
+            LOGGER.warn(io);
         }
     }
 
@@ -139,7 +138,7 @@ public class Record implements Serializable {
                    AbstractLibrary.FEDMINWAGE *
                    n;
         } catch (SurveyException se) {
-//            LOGGER.warn(se);
+            LOGGER.warn(se);
         } catch (Exception e) {
             System.out.println(StringUtils.join(this.library.props.propertyNames(), "\n"));
         }
@@ -165,7 +164,7 @@ public class Record implements Serializable {
         try {
             this.serializeRecord();
         } catch (IOException io) {
-//            LOGGER.warn("Attempted to serialize record:\n"+io);
+            LOGGER.warn("Attempted to serialize record:\n"+io);
         }
     }
 
@@ -255,34 +254,34 @@ public class Record implements Serializable {
                     htmlFileEqual = this.htmlFileName.equals(that.htmlFileName),
                     backendTypeEqual = this.backendType.equals(that.backendType);
             if (!outputFileEqual) {
-//                LOGGER.debug(String.format("Record output filenames not equal (%s vs. %s)", this.outputFileName, that.outputFileName));
+                LOGGER.debug(String.format("Record output filenames not equal (%s vs. %s)", this.outputFileName, that.outputFileName));
                 return false;
             } else if (!surveyEqual) {
-//                LOGGER.debug(String.format("Surveys not equal (%s vs %s)", this.survey, that.survey));
+                LOGGER.debug(String.format("Surveys not equal (%s vs %s)", this.survey, that.survey));
                 return false;
             } else if (!libraryEqual) {
-//                LOGGER.debug(String.format("Libraries not equal (%s vs. %s)", this.library, that.library));
+                LOGGER.debug(String.format("Libraries not equal (%s vs. %s)", this.library, that.library));
                 return false;
             } else if (!classifierEqual) {
-//                LOGGER.debug(String.format("Classifiers not equal: (%s vs. %s)", this.classifier, that.classifier));
+                LOGGER.debug(String.format("Classifiers not equal: (%s vs. %s)", this.classifier, that.classifier));
                 return false;
             } else if (!alphaEqual) {
-//                LOGGER.debug(String.format("Alpha not equal (%f vs. %f)", this.alpha, that.alpha));
+                LOGGER.debug(String.format("Alpha not equal (%f vs. %f)", this.alpha, that.alpha));
                 return false;
             } else if (!ridEqual){
-//                LOGGER.debug(String.format("Record ids not equal (%s vs. %s)", this.rid, that.rid));
+                LOGGER.debug(String.format("Record ids not equal (%s vs. %s)", this.rid, that.rid));
                 return false;
             } else if (!numResponsesEqual) {
-//                LOGGER.debug(String.format("Number of responses not equal (%d vs. %d)", thisNumResponses, thatNumResponses));
+                LOGGER.debug(String.format("Number of responses not equal (%d vs. %d)", thisNumResponses, thatNumResponses));
                 return false;
             } else if (!numTasksEqual) {
-//                LOGGER.debug(String.format("Number of tasks not equal (%d vs. %d)", thisNumTasks, thatNumTasks));
+                LOGGER.debug(String.format("Number of tasks not equal (%d vs. %d)", thisNumTasks, thatNumTasks));
                 return false;
             } else if (!htmlFileEqual) {
-//                LOGGER.debug(String.format("HTML files not equal (%s vs. %s)", this.htmlFileName, that.htmlFileName));
+                LOGGER.debug(String.format("HTML files not equal (%s vs. %s)", this.htmlFileName, that.htmlFileName));
                 return false;
             } else if (!backendTypeEqual) {
-//                LOGGER.debug(String.format("Backend type not equal (%s vs. %s)", this.backendType.name(), that.backendType.name()));
+                LOGGER.debug(String.format("Backend type not equal (%s vs. %s)", this.backendType.name(), that.backendType.name()));
                 return false;
             } else return true;
         } else return false;

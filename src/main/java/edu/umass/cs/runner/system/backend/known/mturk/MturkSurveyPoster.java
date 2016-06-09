@@ -35,7 +35,7 @@ public class MturkSurveyPoster implements ISurveyPoster {
         HIT hit = ((MturkTask) mturkTask).hit;
         String url = ((MturkResponseManager) responseManager).getWebsiteURL()+"/mturk/preview?groupId="+hit.getHITTypeId();
         if (urlnotLogged) {
-//            Runner.LOGGER.info(url);
+            Runner.LOGGER.info(url);
             urlnotLogged = false;
         }
         return url;

@@ -42,7 +42,7 @@ public class ResponseWriter {
             s.append(String.format("%s%s", sep, AbstractParser.CORRELATION));
 
         s.append("\r\n");
-//        Runner.LOGGER.info("headers:" + s.toString());
+        Runner.LOGGER.info("headers:" + s.toString());
         return s.toString();
     }
 

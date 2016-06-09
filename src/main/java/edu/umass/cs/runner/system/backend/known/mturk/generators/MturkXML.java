@@ -14,7 +14,7 @@ import java.io.*;
 public class MturkXML {
 
     public static final int maxQuestionXMLLength = 131072;
-    
+
     public static String getXMLString(QCMetrics qcMetrics) throws SurveyException {
         String retval;
         try {

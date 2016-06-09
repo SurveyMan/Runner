@@ -75,9 +75,7 @@ public class LocalResponseManager extends AbstractResponseManager {
         String responseBody = null;
         try {
             responseBody = httpclient.execute(request, responseHandler);
-        } catch (IOException e) {
-//            Runner.LOGGER.warn(e);
-        }
+        } catch (IOException e) { Runner.LOGGER.warn(e); }
 
         return responseBody;
     }
@@ -97,7 +95,7 @@ public class LocalResponseManager extends AbstractResponseManager {
             for (Server.IdResponseTuple tupe : tuples) {
                 SurveyResponse sr = parseResponse(tupe.id, tupe.xml, survey, r, null);
                 assert sr!=null;
-                boolean valid = r.classifier.classifyResponse(sr);
+		boolean valid = r.classifier.classifyResponse(sr);
                 if (valid) {
                     r.addValidResponse(sr);
                     r.removeBotResponse(sr);
@@ -113,9 +111,9 @@ public class LocalResponseManager extends AbstractResponseManager {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-//        if (validResponsesToAdd>0 || botResponsesToAdd>0)
-//            Runner.LOGGER.info(String.format("%d responses total. %d valid responses added. %d invalid responses added."
-//                    , r.getNumValidResponses() + r.getNumBotResponses(), validResponsesToAdd, botResponsesToAdd));
+        if (validResponsesToAdd>0 || botResponsesToAdd>0)
+            Runner.LOGGER.info(String.format("%d responses total. %d valid responses added. %d invalid responses added."
+                    , r.getNumValidResponses() + r.getNumBotResponses(), validResponsesToAdd, botResponsesToAdd));
         return validResponsesToAdd;
     }
 

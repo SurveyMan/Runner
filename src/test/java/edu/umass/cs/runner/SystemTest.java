@@ -80,7 +80,7 @@ public class SystemTest extends TestLog {
                 RandomRespondent rr = new RandomRespondent(survey, RandomRespondent.AdversaryType.UNIFORM);
                 String headers = ResponseWriter.outputHeaders(survey, new ArrayList<String>());
                 String output = ResponseWriter.outputSurveyResponse(survey,
-                        new SurveyResponse(new SurveyResponse(rr.getResponse())));
+                        new SurveyResponse(rr.getResponse()));
                 new SurveyResponse(survey, "").readSurveyResponses(survey, new StringReader(headers + output));
             } catch (SurveyException se) {
                 if (super.outcome[i])
