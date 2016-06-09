@@ -9,6 +9,16 @@ backend services.
 
 ### Installation / Usage
 
+# Installing from Source
+
+1. Clone this repository
+2. On the command line, type `make`. Answer `A` to all questions. 
+
+# Running 
+
+To see usage, run `java -jar runner.jar`. To actually run something, you must use the `-cp` argument; there are several executables in this jar.
+
+
 ### Troubleshooting
 
 SurveyMan logs a great deal of information in the logs folder. This is a folder that is created automatically in the folder from which you run the SurveyMan jar. `SurveyMan.log` will provide the most informative information, along with anything printed to standard output.
@@ -45,6 +55,7 @@ Implementing features requires the most coordination with the core SurveyMan dev
 In order to use all of the programs here, you will need to have the following installed. Versions known to work are listed in parentheses:
 
 Strictly necessary:
+* Java 1.7+
 * make (3.81)
 * maven (3.0.4, 3.1.1)
 * wget (1.14)
