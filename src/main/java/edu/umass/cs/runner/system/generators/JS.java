@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 
 public class JS {
     
-    private static final Logger LOGGER = Logger.getLogger("system.mturk");
+    private static final Logger LOGGER = Logger.getLogger("system.generators");
 
     private static String makePreview(
             SurveyDatum preview)
@@ -48,10 +48,6 @@ public class JS {
                     survey.jsonize(),
                     makePreview(preview),
                     Slurpie.slurp(AbstractLibrary.JSSKELETON, true));
-        } catch (FileNotFoundException ex) {
-            LOGGER.fatal(ex);
-            ex.printStackTrace();
-            System.exit(-1);
         } catch (IOException ex) {
             LOGGER.fatal(ex);
             ex.printStackTrace();

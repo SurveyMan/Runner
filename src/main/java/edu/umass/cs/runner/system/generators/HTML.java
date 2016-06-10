@@ -23,11 +23,7 @@ import java.net.MalformedURLException;
 public class HTML {
 
     public static final String COMMON_STRINGS =
-            "<script type=\"text/javascript\" src=\"https://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js\"></script>\n"
-            + "<script type=\"text/javascript\" src=\"https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.3.4/seedrandom.min.js\"></script>\n"
-            + "<script type=\"text/javascript\" src=\"https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js\"></script>\n"
-            + "<script type=\"text/javascript\" src=\"https://surveyman.github.io/surveyman.js/SurveyMan/display.js\"></script>\n"
-            + "<script type=\"text/javascript\" src=\"https://surveyman.github.io/surveyman.js/SurveyMan/surveyman.js\"></script>\n";
+            "<script type=\"text/javascript\" src=\"http://localhost:8001/surveyman.main.js\"></script>\n";
 
     private static String stringify()
             throws SurveyException,
@@ -39,9 +35,7 @@ public class HTML {
                     + "</div>";
     }
 
-    private static String stringifyPreview(
-            SurveyDatum c)
-            throws SurveyException
+    private static String stringifyPreview(SurveyDatum c) throws SurveyException
     {
         String baseString = SurveyDatum.html(c);
         return String.format("<div id=\"preview\" hidden>%s</div>"

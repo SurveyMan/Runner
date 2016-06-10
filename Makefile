@@ -6,10 +6,10 @@ projectdir := $(shell pwd)
 
 package: compile
 	mvn package -DskipTests
-	unzip lib/aws-mturk-clt.jar
-	unzip lib/aws-mturk-dataschema.jar
-	unzip lib/aws-mturk-wsdl.jar
-	unzip lib/java-aws-mturk.jar
+	unzip -o lib/aws-mturk-clt.jar
+	unzip -o lib/aws-mturk-dataschema.jar
+	unzip -o lib/aws-mturk-wsdl.jar
+	unzip -o lib/java-aws-mturk.jar
 	jar uf runner.jar com/*
 
 clean:
