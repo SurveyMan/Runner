@@ -13,10 +13,6 @@ tar -xzf aws-mturk-clt.tar.gz
 rm aws-mturk-clt.tar.gz
 aws_folder=`ls | grep aws`
 
-# Install surveyman -- note: this is a hack to get around issues with maven
-git clone git@github.com:SurveyMan/SurveyMan.git
-cd SurveyMan && make package && cd ..
-
 # move mturk jars to lib
 cd $aws_folder/lib
 for jar in $( find . | grep mturk.*jar ); do
