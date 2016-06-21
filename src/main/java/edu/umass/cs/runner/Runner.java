@@ -27,8 +27,6 @@ import edu.umass.cs.surveyman.input.csv.CSVParser;
 import edu.umass.cs.surveyman.input.json.JSONParser;
 import edu.umass.cs.surveyman.qc.QCMetrics;
 import edu.umass.cs.surveyman.qc.classifiers.AbstractClassifier;
-import edu.umass.cs.surveyman.qc.classifiers.AllClassifier;
-import edu.umass.cs.surveyman.qc.classifiers.ClusterClassifier;
 import edu.umass.cs.surveyman.survey.Question;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
@@ -49,17 +47,16 @@ public class Runner {
 
     public static final Logger LOGGER = LogManager.getLogger(Runner.class.getName());
     private static long timeSinceLastNotice = System.currentTimeMillis();
-    public static KnownBackendType backendType;
-    public static AbstractResponseManager responseManager;
-    public static ISurveyPoster surveyPoster;
+    private static KnownBackendType backendType;
+    private static AbstractResponseManager responseManager;
+    private static ISurveyPoster surveyPoster;
     public static AbstractLibrary library;
     public static final BoxedBool interrupt = new BoxedBool();
     public static final double basePay = 7.25;
     public static double alpha = 0.05;
-    public static boolean smoothing = false;
+    private static boolean smoothing = false;
 
-    public static ArgumentParser makeArgParser()
-    {
+    private static ArgumentParser makeArgParser() {
         // move more of the setup into this method
         ArgumentParser argumentParser = ArgumentParsers.newArgumentParser(Runner.class.getName(),true,"-").description("Posts surveys");
         argumentParser.addArgument("survey").required(true);
@@ -90,8 +87,7 @@ public class Runner {
             String bt,
             String properties,
             String config)
-            throws IOException
-    {
+            throws IOException {
         // if it's an unrecognized backend type, it will fail earlier
         backendType = KnownBackendType.valueOf(bt);
         switch (backendType) {
@@ -111,8 +107,7 @@ public class Runner {
 
     public static void init(
             String bt)
-            throws IOException
-    {
+            throws IOException {
         init(bt, "","");
     }
 
@@ -123,11 +118,10 @@ public class Runner {
         init(bt.name());
     }
 
-    public static int recordAllTasksForSurvey(
+    private static int recordAllTasksForSurvey(
             Survey survey)
             throws IOException,
-            SurveyException
-    {
+            SurveyException {
 
         Record record = AbstractResponseManager.getRecord(survey);
         String hiturl = "", msg;
@@ -154,9 +148,7 @@ public class Runner {
         return responsesAdded;
     }
 
-    public static Thread makeResponseGetter(
-            final Survey survey)
-    {
+    private static Thread makeResponseGetter(final Survey survey) {
         // grab responses for each incomplete survey in the responsemanager
         final KnownBackendType backendType = Runner.backendType;
         return new Thread(){
@@ -166,9 +158,7 @@ public class Runner {
                 do {
                     try {
                         recordAllTasksForSurvey(survey);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (SurveyException e) {
+                    } catch (IOException | SurveyException e) {
                         e.printStackTrace();
                     }
                 } while(!interrupt.getInterrupt());
@@ -191,16 +181,14 @@ public class Runner {
                         }
                     }
                     AbstractResponseManager.removeRecord(record);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (SurveyException e) {
+                    } catch (IOException | SurveyException e) {
                         e.printStackTrace();
                     }
-                }
+            }
         };
     }
 
-    public static boolean stillLive(
+    private static boolean stillLive(
             Survey survey)
             throws IOException,
             SurveyException,
@@ -214,10 +202,9 @@ public class Runner {
                 record.library.props.getProperty(Parameters.NUM_PARTICIPANTS));
     }
 
-    public static void writeResponses(
+    private static void writeResponses(
             Survey survey,
-            Record record)
-    {
+            Record record) {
         assert record.getAllResponses().size() > 0 :
                 "Should not be calling Runner.writeResponses if we have not recieved any responses. ";
         for (SurveyResponse sr : record.getAllResponses()) {
@@ -253,31 +240,25 @@ public class Runner {
         }
     }
 
-    public static Thread makeWriter(
-            final Survey survey)
-    {
+    private static Thread makeWriter(final Survey survey) {
         //writes hits that correspond to current jobs in memory to their files
         return new Thread(){
             @Override
             public void run(){
                 Record record = null;
                 int numTimesCalled = 0;
-                do {
-                    try {
-                        record = AbstractResponseManager.getRecord(survey);
-                        //LOGGER.debug("Record identity:\t"+System.identityHashCode(record));
-                        synchronized (record) {
-                            if(record.needsWrite()) {
-                                writeResponses(survey, record);
-                            }
+                do try {
+                    record = AbstractResponseManager.getRecord(survey);
+                    //LOGGER.debug("Record identity:\t"+System.identityHashCode(record));
+                    synchronized (record) {
+                        if (record.needsWrite()) {
+                            writeResponses(survey, record);
                         }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (SurveyException e) {
-                        e.printStackTrace();
-                    } catch (NullPointerException npe) {
-                        LOGGER.warn(npe);
                     }
+                } catch (IOException | SurveyException e) {
+                    e.printStackTrace();
+                } catch (NullPointerException npe) {
+                    LOGGER.warn(npe);
                 } while (!interrupt.getInterrupt());
                     // clean up
                 System.out.print("Writing straggling data...");
@@ -295,8 +276,7 @@ public class Runner {
             InstantiationException,
             IllegalAccessException,
             IOException,
-            AccessKeyException
-    {
+            AccessKeyException {
         try {
             Survey survey = record.survey;
             int numTimesCalled = 0;
@@ -331,7 +311,7 @@ public class Runner {
         }
     }
 
-    public static Thread makeRunner(
+    private static Thread makeRunner(
             final Record record)
     {
         return new Thread(){
@@ -344,25 +324,17 @@ public class Runner {
                     System.out.println("Insufficient funds in your Mechanical Turk account. Would you like to:\n" +
                         "[1] Add more money to your account and retry\n" +
                         "[2] Quit\n");
-                    int i = 0;
-                    while(i!=1 && i!=2){
+                    int i;
+                    do {
                         System.out.println("Type number corresponding to preference: ");
                         i = scanner.nextInt();
                         if (i==2)
                             System.exit(1);
-                    }
+                    } while(i!=1);
                 } catch (AccessKeyException aws) {
                     System.out.println(String.format("There is a problem with your access keys: %s; Exiting...", aws.getMessage()));
                     System.exit(0);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ClassNotFoundException e) {
+                } catch (IllegalAccessException | InterruptedException | IOException | InstantiationException | ClassNotFoundException e) {
                     e.printStackTrace();
                 } finally {
                     scanner.close();
@@ -373,22 +345,20 @@ public class Runner {
 
     private static void exit(
             AbstractResponseManager abstractResponseManager,
-            Record record)
-    {
+            Record record) {
         for (ITask task : record.getAllTasks())
             abstractResponseManager.makeTaskAvailable(task.getTaskId(), record);
         interrupt.setInterrupt(true, "User called exit.");
     }
 
-    public static Thread makeREPL(
+    private static Thread makeREPL(
             final AbstractResponseManager abstractResponseManager,
             final Record record,
-            final org.eclipse.jetty.server.Server dashboardServer)
-    {
+            final org.eclipse.jetty.server.Server dashboardServer) {
         return new Thread() {
 
-            public static final String ANSI_RESET = "\u001B[0m";
-            public static final String ANSI_PURPLE = "\u001B[35m";
+            static final String ANSI_RESET = "\u001B[0m";
+            static final String ANSI_PURPLE = "\u001B[35m";
 
             @Override
             public void run()
@@ -405,21 +375,23 @@ public class Runner {
                 printWriter.flush();
                 while (true) {
                     Scanner userAction = new Scanner(System.in);
-                    int choice = userAction.nextInt();
-                    if (choice==exitChoice) {
-                        exit(abstractResponseManager, record);
-                        return;
-                    } else if (choice==stopDashboardChoice) {
-                        LOGGER.info("User cancelling dashboard service.");
-                        try {
-                            if (dashboardServer!=null)
-                                dashboardServer.stop();
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                    try {
+                        int choice = userAction.nextInt();
+                        if (choice == exitChoice) {
+                            exit(abstractResponseManager, record);
+                            return;
+                        } else if (choice == stopDashboardChoice) {
+                            LOGGER.info("User cancelling dashboard service.");
+                            try {
+                                if (dashboardServer != null)
+                                    dashboardServer.stop();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            printWriter.write(prompt + String.format("%d not a recognized option.", choice) + ANSI_RESET);
                         }
-                    } else {
-                        printWriter.write(prompt + String.format("%d not a recognized option.", choice) + ANSI_RESET);
-                    }
+                    } catch (NoSuchElementException nse) {}
                     printWriter.write(prompt + instructions + ANSI_RESET);
                     printWriter.flush();
                 }
@@ -427,7 +399,7 @@ public class Runner {
         };
     }
 
-    public static void runAll(
+    private static void runAll(
             String s,
             String sep,
             Namespace ns)
@@ -507,10 +479,10 @@ public class Runner {
         IFn require = Clojure.var("clojure.core", "require");
         require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
         IFn run = Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "-run");
-        System.out.println(String.format(
-                "To monitor the survey, navigate to:\n\thttp://localhost:%d/src/main/resources/debugger/Debug.html",
-                (Long) Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "-getPort").invoke()));
-        return (org.eclipse.jetty.server.Server) run.invoke(record);
+        long port = (Long) Clojure.var("edu.umass.cs.runner.dashboard.Dashboard", "-getPort").invoke();
+        org.eclipse.jetty.server.Server server = (org.eclipse.jetty.server.Server) run.invoke(record);
+        System.out.println(String.format("To monitor the survey, navigate to:\n\thttp://localhost:%d/src/main/resources/debugger/Debug.html", port));
+        return server;
     }
 
     public static void main(

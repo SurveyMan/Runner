@@ -4,12 +4,13 @@
     :prefix "-"
     :main false
     :methods [#^{:static true} [run [edu.umass.cs.runner.Record] void]
-                               [getPort [] Integer]])
+                               [getPort [] Long]])
   (:import [edu.umass.cs.surveyman.qc QCMetrics]
            [edu.umass.cs.runner.system BoxedBool])
   (:import edu.umass.cs.surveyman.utils.Slurpie)
   (:import edu.umass.cs.runner.Record)
-  (:import edu.umass.cs.runner.system.Parameters)
+  (:import edu.umass.cs.runner.system.Parameters
+           (java.net BindException))
   (:use ring.adapter.jetty)
   (:use ring.middleware.params)
   (:use ring.util.codec)
@@ -35,7 +36,7 @@
                 params :params
                 body :body
                 :as request}]
-  (println (format "request:%s\tquery:%s\turi:%s\tparams:%s\n" request-method query-string uri params))
+  ;(println (format "request:%s\tquery:%s\turi:%s\tparams:%s\n" request-method query-string uri params))
   (when query-string
     (println (keywordize-keys (form-decode query-string))))
   {:status 200
@@ -74,11 +75,12 @@
   (try
     (let [dashboardServer (ring.adapter.jetty/run-jetty
                             handler
-                            {:port @PORT :join? false})]
+                            {:port ^Long @PORT :join? false})]
       (println (str "Dashboard server running at http://localhost:" @PORT "/dashboard/Dashboard.html"))
       dashboardServer)
-    (catch java.net.BindException e
-      (swap! PORT (inc @PORT))
+    (catch BindException _
+      (println (str "Could not run dashboard server on port " @PORT))
+      (swap! PORT inc)
       (run record)))
   )
 

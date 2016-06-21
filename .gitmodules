@@ -1,0 +1,3 @@
+[submodule "src/main/resources/surveyman.js"]
+	path = src/main/resources/surveyman.js
+	url = git@github.com:SurveyMan/surveyman.js.git

@@ -13,7 +13,7 @@ public class LocalHTML implements IHTML {
     public static final int port = Server.frontPort;
 
     public String getHTMLString() {
-        return HTML.COMMON_STRINGS + getSetAssignmentId();
+        return HTML.LOCAL_REFERENCE + getSetAssignmentId();
     }
 
     private String getSetAssignmentId(){

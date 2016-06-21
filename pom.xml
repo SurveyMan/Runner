@@ -300,6 +300,9 @@
             <resource>
                 <directory>${project.home}/src/main/resources</directory>
             </resource>
+	    <resource>
+	      <directory>${project.home}/src/main/resources/surveyman.js</directory>
+	    </resource>
         </resources>
 
         <testResources>

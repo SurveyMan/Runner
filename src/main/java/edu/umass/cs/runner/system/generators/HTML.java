@@ -22,8 +22,12 @@ import java.net.MalformedURLException;
 
 public class HTML {
 
-    public static final String COMMON_STRINGS =
-            "<script type=\"text/javascript\" src=\"http://localhost:8001/surveyman.main.js\"></script>\n";
+    public static final String REMOTE_REFERENCE = jsReference("http://surveyman.github.io/surveyman.js/surveyman.main.js");
+    public static final String LOCAL_REFERENCE =  jsReference("../surveyman.js/surveyman.main.js");
+
+    private static String jsReference(String src) {
+        return String.format("<script type=\"text/javascript\" src=\"%s\"></script>\n", src);
+    }
 
     private static String stringify()
             throws SurveyException,
@@ -57,7 +61,7 @@ public class HTML {
         bw.close();
     }
 
-    public static String cleanedPreview(
+    private static String cleanedPreview(
             Record record)
     {
         String preview = record.library.props.getProperty("splashpage", "");
@@ -91,9 +95,6 @@ public class HTML {
                     , backendHTML.getHTMLString()
                     , Slurpie.slurp(AbstractLibrary.CUSTOMCSS, true)
             );
-        } catch (FileNotFoundException ex) {
-            Runner.LOGGER.fatal(ex);
-            System.exit(-1);
         } catch (IOException ex) {
             Runner.LOGGER.fatal(ex);
             System.exit(-1);

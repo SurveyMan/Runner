@@ -5,6 +5,7 @@ projectdir := $(shell pwd)
 .PHONY := clean compile test test_travis package deps
 
 package: compile
+	(cd src/main/resources/surveyman.js && npm run webpack)
 	mvn package -DskipTests
 	unzip -o lib/aws-mturk-clt.jar
 	unzip -o lib/aws-mturk-dataschema.jar

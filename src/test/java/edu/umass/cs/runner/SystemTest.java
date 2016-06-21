@@ -97,8 +97,7 @@ public class SystemTest extends TestLog {
     @Test
     public void testSerialize()
             throws SurveyException, IOException, NoSuchMethodException, IllegalAccessException,
-                   InvocationTargetException, ClassNotFoundException
-    {
+                   InvocationTargetException, ClassNotFoundException {
         CSVParser csvParser = new CSVParser(new CSVLexer(testsFiles[0], String.valueOf(separators[0])));
         Survey survey = csvParser.parse();
         MturkLibrary.dumpSampleProperties();
