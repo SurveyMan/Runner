@@ -111,10 +111,8 @@ public class Runner {
         init(bt, "","");
     }
 
-    public static void init(
-            KnownBackendType bt)
-            throws IOException
-    {
+    public static void init(KnownBackendType bt)
+            throws IOException {
         init(bt.name());
     }
 
@@ -443,7 +441,8 @@ public class Runner {
             IllegalAccessException,
             NoSuchMethodException,
             IOException,
-            InterruptedException
+            InterruptedException,
+            SurveyException
     {
         // create and store the record
         final Record record = new Record(new QCMetrics(survey, classifier),  library, backendType);

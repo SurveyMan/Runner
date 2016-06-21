@@ -10,6 +10,7 @@ import edu.umass.cs.surveyman.input.csv.CSVLexer;
 import edu.umass.cs.surveyman.input.csv.CSVParser;
 import edu.umass.cs.surveyman.qc.QCMetrics;
 import edu.umass.cs.surveyman.qc.classifiers.AllClassifier;
+import edu.umass.cs.surveyman.qc.exceptions.UnanalyzableException;
 import edu.umass.cs.surveyman.qc.respondents.RandomRespondent;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
@@ -18,7 +19,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
@@ -34,9 +34,11 @@ public class SystemTest extends TestLog {
     public void testMturkHTMLGenerator()
             throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, IOException
     {
-        try{
+        String filename = "";
+        try {
             for ( int i = 0 ; i < testsFiles.length ; i++ ) {
-                CSVParser csvParser = new CSVParser(new CSVLexer(testsFiles[i], String.valueOf(separators[i])));
+                filename = testsFiles[i];
+                CSVParser csvParser = new CSVParser(new CSVLexer(filename, String.valueOf(separators[i])));
                 Survey survey = csvParser.parse();
                 MturkLibrary.dumpSampleProperties();
                 QCMetrics qcMetrics = new QCMetrics(survey, new AllClassifier(survey));
@@ -44,8 +46,13 @@ public class SystemTest extends TestLog {
                 HTML.getHTMLString(record, new MturkHTML());
                 LOGGER.info(testsFiles[i]+" generated IHTML successfully.");
             }
+        } catch (UnanalyzableException e) {
+            Assert.assertEquals(filename, "src/test/resources/data/tests/regexp_test.csv");
         } catch (SurveyException se) {
             LOGGER.fatal(se);
+        } catch (AssertionError e) {
+            System.err.println("Failed on file " + filename);
+            throw e;
         }
     }
 
@@ -106,7 +113,7 @@ public class SystemTest extends TestLog {
         String serializedFileName = record.serializeRecord();
         Record deserializedRecord = Record.deserializeRecord(serializedFileName);
         try {
-            Assert.assertEquals(record, deserializedRecord);
+            Assert.assertTrue(record.equals(deserializedRecord));
         } catch (NullPointerException npe) {
             npe.printStackTrace();
             LOGGER.fatal(npe);

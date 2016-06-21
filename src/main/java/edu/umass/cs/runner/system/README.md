@@ -68,7 +68,7 @@ An example Question JSON is :
 }
 ````
 
-### Option JSON
+### Option JSONhttps://gist.github.com/petrbel/c3bf7e0f59c22a52f534
 An option is just a map of an id and text. All option display information is held in the Question JSON. If the original survey was loaded in from csv, the idenfier should be of the form `comp_x_y`, where `x` refers to the row of the option and `y` refers to the column of the option. An example option might be :
 
 ````
