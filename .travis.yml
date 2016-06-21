@@ -1,8 +1,22 @@
 language: java
+
 jdk:
     - oraclejdk7
     - openjdk6
     - openjdk7
     - oraclejdk8
-before_install: scripts/setup.sh
+
 script: make test_travis
+
+# from https://gist.github.com/petrbel/c3bf7e0f59c22a52f534
+# Use https (public access) instead of git for git-submodules. This modifies only Travis-CI behavior!
+
+# disable the default submodule logic
+git:
+  submodules: false
+
+# use sed to replace the SSH URL with the public URL, then init and update submodules
+before_install:
+  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+  - git submodule update --init --recursive
+  - scripts/setup.sh
