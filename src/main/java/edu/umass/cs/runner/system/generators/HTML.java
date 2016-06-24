@@ -22,7 +22,7 @@ import java.net.MalformedURLException;
 
 public class HTML {
 
-    public static final String REMOTE_REFERENCE = jsReference("http://surveyman.github.io/surveyman.js/surveyman.main.js");
+    public static final String REMOTE_REFERENCE = jsReference("https://surveyman.github.io/surveyman.js/surveyman.main.js");
     public static final String LOCAL_REFERENCE =  jsReference("../surveyman.js/surveyman.main.js");
 
     private static String jsReference(String src) {
