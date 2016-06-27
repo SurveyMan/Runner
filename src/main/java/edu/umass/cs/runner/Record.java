@@ -34,6 +34,7 @@ public class Record implements Serializable {
     private String htmlFileName = "";
     public KnownBackendType backendType;
     public final double expectedCost;
+    public final String breakoffMessage;
     private final String RECORDDIR = AbstractLibrary.RECORDDIR + AbstractLibrary.fileSep + this.rid;
 
     public String serializeRecord() throws IOException {
@@ -116,6 +117,7 @@ public class Record implements Serializable {
         this.classifier = qcMetrics.classifier;
         this.alpha = qcMetrics.classifier.alpha;
         this.expectedCost = computeExpectedCost();
+        this.breakoffMessage = getBreakoffMessage();
         LOGGER.info(String.format("New record with id (%s) created for survey %s (%s)."
                 , rid
                 , survey.sourceName
@@ -127,6 +129,14 @@ public class Record implements Serializable {
             LOGGER.warn(String.format("Attempt to serialize record %s in constructor failed.,", this.rid));
             LOGGER.warn(io);
         }
+    }
+
+    private String getBreakoffMessage() {
+        String msg = (String) this.library.props.get(Parameters.BREAKOFF_MESSAGE);
+        if (msg == null) {
+            this.library.props.setProperty(Parameters.BREAKOFF_MESSAGE, AbstractLibrary.DEFAULT_BREAKOFF_MESSAGE);
+            return AbstractLibrary.DEFAULT_BREAKOFF_MESSAGE;
+        } else return msg;
     }
 
     private double computeExpectedCost() {

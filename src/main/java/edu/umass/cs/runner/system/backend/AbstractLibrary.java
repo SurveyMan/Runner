@@ -42,6 +42,7 @@ public abstract class AbstractLibrary implements Serializable {
     public static final double FEDMINWAGE = 7.25;
     public static double timePerQuestionInSeconds = 10;
 
+    public static final String DEFAULT_BREAKOFF_MESSAGE = "This survey will allow you to submit partial responses. The minimum payment is the quantity listed. However, you will be compensated more for completing more of the survey in the form of bonuses, at the completion of this study. The quantity paid depends on the results returned so far. Note that submitting partial results does not guarantee payment.";
 
     static {
         try {
