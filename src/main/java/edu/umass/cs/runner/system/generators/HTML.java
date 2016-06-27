@@ -81,12 +81,13 @@ public class HTML {
             assert(record.library!=null);
             assert(record.library.props!=null);
             String strPreview = cleanedPreview(record);
+            String breakoffMessage = record.breakoffMessage;
             SurveyDatum preview = AbstractParser.parseComponent(
                     HTMLDatum.isHTMLComponent(strPreview) ? AbstractLexer.xmlChars2HTML(strPreview) : strPreview,
                     -1, -1, -1);
             html = String.format(Slurpie.slurp(AbstractLibrary.HTMLSKELETON)
                     , record.survey.encoding
-                    , JS.getJSString(record.backendType, record.survey, preview)
+                    , JS.getJSString(record.backendType, record.survey, preview, breakoffMessage)
                     , stringifyPreview(preview)
                     , stringify()
                     , backendHTML.getActionForm(record)

@@ -32,7 +32,8 @@ public class JS {
     public static String getJSString(
             KnownBackendType knownBackendType,
             Survey survey,
-            SurveyDatum preview)
+            SurveyDatum preview,
+            String breakoffMessage)
             throws SurveyException,
             IOException
     {
@@ -41,13 +42,16 @@ public class JS {
             js = String.format("SurveyMan.display.ready(" +
                             "%b, " +
                             "%s, " +
-                            "function () { %s }, " +
-                            "function() { %s }" +
+                            "function() { %s }, " +
+                            "function() { %s }, " +
+                            "%s" +
                             ");",
                     knownBackendType.equals(KnownBackendType.MTURK),
                     survey.jsonize(),
                     makePreview(preview),
-                    Slurpie.slurp(AbstractLibrary.JSSKELETON, true));
+                    Slurpie.slurp(AbstractLibrary.JSSKELETON, true),
+                    breakoffMessage
+            );
         } catch (IOException ex) {
             LOGGER.fatal(ex);
             ex.printStackTrace();

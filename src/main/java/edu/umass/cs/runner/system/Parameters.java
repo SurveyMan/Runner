@@ -11,4 +11,5 @@ public class Parameters {
     public static final String TITLE = "title";
     public static final String SPLASH_PAGE = "splashpage";
     public static final String DESCRIPTION = "description";
+    public static final String BREAKOFF_MESSAGE = "breakoffmsg";
 }
