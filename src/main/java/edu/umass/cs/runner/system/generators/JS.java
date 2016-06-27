@@ -44,7 +44,7 @@ public class JS {
                             "%s, " +
                             "function() { %s }, " +
                             "function() { %s }, " +
-                            "%s" +
+                            "\"%s\"" +
                             ");",
                     knownBackendType.equals(KnownBackendType.MTURK),
                     survey.jsonize(),
