@@ -39,7 +39,7 @@ public class JS {
     {
         String js = "";
         try {
-            js = String.format("SurveyMan.display.ready(" +
+            js = String.format("SurveyMan.display.ready(window[\"assignmentId\"], " +
                             "%b, " +
                             "%s, " +
                             "function() { %s }, " +
@@ -50,7 +50,7 @@ public class JS {
                     survey.jsonize(),
                     makePreview(preview),
                     Slurpie.slurp(AbstractLibrary.JSSKELETON, true),
-                    breakoffMessage
+                    breakoffMessage //needs to be url encoded
             );
         } catch (IOException ex) {
             LOGGER.fatal(ex);
