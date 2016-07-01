@@ -9,13 +9,13 @@ public class MturkTask implements ITask {
     public final HIT hit;
     private Record record;
 
-    public MturkTask(HIT hit, Record record) {
+    MturkTask(HIT hit, Record record) {
         this.hit = hit;
         this.record = record;
         record.addNewTask(this);
     }
 
-    public MturkTask(HIT hit){
+    MturkTask(HIT hit){
         this.hit = hit;
     }
 
@@ -35,8 +35,9 @@ public class MturkTask implements ITask {
 
     @Override
     public boolean equals(Object o) {
-        return hit.getHITId().equals(((MturkTask) o).getTaskId())
-                && record.rid.equals(((MturkTask) o).getRecord().rid);
+        return o instanceof MturkTask &&
+                hit.getHITId().equals(((MturkTask) o).getTaskId()) &&
+                record.rid.equals(((MturkTask) o).getRecord().rid);
     }
 
     @Override

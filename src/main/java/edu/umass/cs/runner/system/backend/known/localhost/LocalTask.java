@@ -8,7 +8,7 @@ import edu.umass.cs.surveyman.utils.Gensym;
 import java.io.IOException;
 import java.io.Serializable;
 
-public class LocalTask implements ITask, Serializable {
+public class LocalTask implements ITask {
 
     private static Gensym gensym = new Gensym("task");
 

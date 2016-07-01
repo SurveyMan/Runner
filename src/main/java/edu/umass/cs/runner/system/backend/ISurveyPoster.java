@@ -7,8 +7,8 @@ import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 
 public interface ISurveyPoster {
 
-    public ITask postSurvey(AbstractResponseManager responseManager, Record r) throws SurveyException;
-    public boolean stopSurvey(AbstractResponseManager responseManager, Record r, BoxedBool interrupt);
-    public String makeTaskURL(AbstractResponseManager responseManager, ITask task);
-    public void init(String config);
+    ITask postSurvey(AbstractResponseManager responseManager, Record r) throws SurveyException;
+    boolean stopSurvey(AbstractResponseManager responseManager, Record r, BoxedBool interrupt);
+    String makeTaskURL(AbstractResponseManager responseManager, ITask task);
+    void init(String config);
 }

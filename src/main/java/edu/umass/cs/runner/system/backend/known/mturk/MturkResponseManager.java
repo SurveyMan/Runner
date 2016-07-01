@@ -8,45 +8,41 @@ import com.amazonaws.mturk.service.exception.InternalServiceException;
 import com.amazonaws.mturk.service.exception.ObjectAlreadyExistsException;
 import com.amazonaws.mturk.service.exception.ObjectDoesNotExistException;
 import com.amazonaws.mturk.util.PropertiesClientConfig;
-import edu.umass.cs.runner.system.backend.AbstractResponseManager;
 import edu.umass.cs.runner.Record;
 import edu.umass.cs.runner.Runner;
-import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.runner.system.Parameters;
 import edu.umass.cs.runner.system.SurveyResponse;
-import edu.umass.cs.surveyman.qc.QCMetrics;
+import edu.umass.cs.runner.system.backend.AbstractResponseManager;
+import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.surveyman.qc.classifiers.EntropyClassifier;
 import edu.umass.cs.surveyman.qc.classifiers.LogLikelihoodClassifier;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dom4j.DocumentException;
 import org.xml.sax.SAXException;
-import java.io.IOException;
-import java.text.*;
-import java.util.*;
 
 import javax.xml.parsers.ParserConfigurationException;
-import static java.text.MessageFormat.*;
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static java.text.MessageFormat.format;
 
 public class MturkResponseManager extends AbstractResponseManager {
 
-    protected static class CreateHITException extends SurveyException {
-        public CreateHITException(String title) {
-            super(String.format("Unable to create HIT for survey \"%s\"", title));
-        }
-    }
-
+    final static long maxAutoApproveDelay = 2592000L;
     private static final Logger LOGGER = Runner.LOGGER;
+    private final static long minExpirationIncrementInSeconds = 60L;
+    //final protected static long maxExpirationIncrementInSeconds = 31536000l;
+    private final static int maxWaitTimeInSeconds = 120;
     protected final PropertiesClientConfig config;
     protected final RequesterService service;
-    final protected static long maxAutoApproveDelay = 2592000l;
-    final protected static long minExpirationIncrementInSeconds = 60l;
-    final protected static long maxExpirationIncrementInSeconds = 31536000l;
-    final protected static int maxWaitTimeInSeconds = 120;
 
-    public MturkResponseManager(
-            MturkLibrary lib)
+    public MturkResponseManager(MturkLibrary lib)
     {
         this.config = new PropertiesClientConfig(lib.CONFIG);
         this.config.setServiceURL(lib.MTURK_URL);
@@ -63,8 +59,7 @@ public class MturkResponseManager extends AbstractResponseManager {
         } else return false;
     }
 
-    public ITask getTask(
-            String taskId)
+    public ITask getTask(String taskId)
     {
         String name = "getTask";
         int waittime = 2;
@@ -72,7 +67,7 @@ public class MturkResponseManager extends AbstractResponseManager {
             synchronized (service) {
                 try {
                     HIT hit = service.getHIT(taskId);
-                    LOGGER.info(String.format("Retrieved HIT %s", hit.getHITId()));
+//                    LOGGER.info(String.format("Retrieved HIT %s", hit.getHITId()));
                     return new MturkTask(hit);
                 } catch (InternalServiceException ise) {
                     if (overTime(name, waittime)) {
@@ -98,7 +93,7 @@ public class MturkResponseManager extends AbstractResponseManager {
             synchronized (service) {
                 try {
                     Assignment[] hitAssignments = service.getAllAssignmentsForHIT(hit.getHITId());
-                    List<Assignment> assignments = new LinkedList<Assignment>();
+                    List<Assignment> assignments = new LinkedList<>();
                     boolean addAll = assignments.addAll(Arrays.asList(hitAssignments));
                     if (addAll)
                         LOGGER.info(String.format("Retrieved %d assignments for HIT %s", hitAssignments.length, hit.getHITId()));
@@ -173,9 +168,7 @@ public class MturkResponseManager extends AbstractResponseManager {
                 }
                 chill(waitTime);
                 waitTime = 2 * waitTime;
-            } catch (SurveyException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+            } catch (SurveyException | IOException e) {
                 e.printStackTrace();
             }
         }
@@ -203,13 +196,7 @@ public class MturkResponseManager extends AbstractResponseManager {
             if (otherValues==null)
                 return new SurveyResponse(survey, workerId, ansXML, r, new HashMap<String, String>());
         else return new SurveyResponse(survey, workerId, ansXML, r, otherValues);
-        } catch (DocumentException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (ParserConfigurationException e) {
+        } catch (DocumentException | ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
         }
         return null;
@@ -236,7 +223,7 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
-    protected String getWebsiteURL()
+    String getWebsiteURL()
     {
         String name = "getWebsiteURL";
         synchronized (service) {
@@ -251,7 +238,7 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
-    protected String createHIT(
+    String createHIT(
             String title,
             String description,
             String keywords,
@@ -320,7 +307,7 @@ public class MturkResponseManager extends AbstractResponseManager {
         } else return false;
     }
 
-    public int numAvailableAssignments(ITask task) {
+    int numAvailableAssignments(ITask task) {
         String name = "availableAssignments";
         while (true){
             synchronized (service) {
@@ -338,17 +325,18 @@ public class MturkResponseManager extends AbstractResponseManager {
         }
     }
 
-    public ITask addAssignments(ITask task, int n) {
+    ITask addAssignments(ITask task, int n) {
         Class name = new Object(){}.getClass();
         int waittime = 1;
         while (true){
             synchronized (service) {
-                try{
+                try {
                     String id = task.getTaskId();
                     service.extendHIT(id, n, minExpirationIncrementInSeconds);
                     return task;
-                }catch(InternalServiceException ise){
-                    LOGGER.warn(MessageFormat.format("{0} {1}", name, ise));
+                } catch(InternalServiceException ise){
+                    LOGGER.warn(MessageFormat.format("{0} {1}; error codes: {2}", name, ise,
+                            StringUtils.join(ise.getErrorCodes(), ",")));
                     if (waittime > maxWaitTimeInSeconds) {
                         String msg = String.format("WARNING: Exceeded max wait time in %s.%s..."
                                 , name.getEnclosingClass().getName()
@@ -405,9 +393,7 @@ public class MturkResponseManager extends AbstractResponseManager {
         else throw new RuntimeException("Unknown classifier: "+classname);
     }
 
-    public int addResponses(
-            Survey survey,
-            ITask task)
+    public int addResponses(Survey survey, ITask task)
             throws SurveyException
     {
         boolean success = false;
@@ -426,9 +412,9 @@ public class MturkResponseManager extends AbstractResponseManager {
             HIT hit = ((MturkTask) task).hit;
             List<Assignment> assignments = getAllAssignmentsForHIT(hit);
             for (Assignment a : assignments) {
-                synchronized (record) {
+                synchronized (service) {
                     if (a.getAssignmentStatus().equals(AssignmentStatus.Submitted)) {
-                        Map<String, String> otherValues = new HashMap<String, String>();
+                        Map<String, String> otherValues = new HashMap<>();
                         otherValues.put("acceptTime", String.format("%s", format.format(a.getAcceptTime().getTime())));
                         otherValues.put("submitTime", String.format("%s", format.format(a.getSubmitTime().getTime())));
                         SurveyResponse sr = parseResponse(a.getWorkerId(), a.getAnswer(), survey, record, otherValues);
@@ -455,5 +441,11 @@ public class MturkResponseManager extends AbstractResponseManager {
             LOGGER.info(String.format("%d responses total. %d valid responses added. %d invalid responses added."
                     , record.getNumValidResponses()+record.getNumBotResponses(), validResponsesToAdd, botResponsesToAdd));
         return validResponsesToAdd;
+    }
+
+    private static class CreateHITException extends SurveyException {
+        CreateHITException(String title) {
+            super(String.format("Unable to create HIT for survey \"%s\"", title));
+        }
     }
 }

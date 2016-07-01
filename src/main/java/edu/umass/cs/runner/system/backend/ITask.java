@@ -2,7 +2,9 @@ package edu.umass.cs.runner.system.backend;
 
 import edu.umass.cs.runner.Record;
 
-public interface ITask {
+import java.io.Serializable;
+
+public interface ITask extends Serializable {
 
     public String getTaskId();
     public Record getRecord();

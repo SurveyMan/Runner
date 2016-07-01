@@ -105,10 +105,9 @@ public class Runner {
         }
     }
 
-    public static void init(
-            String bt)
+    public static void init(String bt)
             throws IOException {
-        init(bt, "","");
+        init(bt, "", "");
     }
 
     public static void init(KnownBackendType bt)
@@ -152,7 +151,9 @@ public class Runner {
         return new Thread(){
             @Override
             public void run(){
-                System.out.println(String.format("Checking for responses in %s", backendType));
+                String str = String.format("Checking for responses in %s", backendType);
+                System.out.println(str);
+                LOGGER.info(str);
                 do {
                     try {
                         recordAllTasksForSurvey(survey);
@@ -244,7 +245,7 @@ public class Runner {
             @Override
             public void run(){
                 Record record = null;
-                int numTimesCalled = 0;
+//                int numTimesCalled = 0;
                 do try {
                     record = AbstractResponseManager.getRecord(survey);
                     //LOGGER.debug("Record identity:\t"+System.identityHashCode(record));
@@ -389,7 +390,7 @@ public class Runner {
                         } else {
                             printWriter.write(prompt + String.format("%d not a recognized option.", choice) + ANSI_RESET);
                         }
-                    } catch (NoSuchElementException nse) {}
+                    } catch (NoSuchElementException _) {}
                     printWriter.write(prompt + instructions + ANSI_RESET);
                     printWriter.flush();
                 }
@@ -431,18 +432,13 @@ public class Runner {
         runAll(survey, classifier, smoothing, alpha, runDashboardp);
     }
 
-    public static void runAll(
-            Survey survey,
-            AbstractClassifier classifier,
-            boolean smoothing,
-            double alpha,
-            boolean runDashboardp)
-            throws InvocationTargetException,
-            IllegalAccessException,
-            NoSuchMethodException,
-            IOException,
-            InterruptedException,
-            SurveyException
+    public static void runAll(Survey survey,
+                              AbstractClassifier classifier,
+                              boolean smoothing,
+                              double alpha,
+                              boolean runDashboardp)
+            throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, IOException,
+            InterruptedException, SurveyException
     {
         // create and store the record
         final Record record = new Record(new QCMetrics(survey, classifier),  library, backendType);
@@ -462,7 +458,7 @@ public class Runner {
                 , record.library.props.get(Parameters.NUM_PARTICIPANTS)));
         while (record.getAllTasks().length==0) {}
         for (ITask task : record.getAllTasks())
-            msg.append("\n\t" + surveyPoster.makeTaskURL(responseManager, task));
+            msg.append("\n\t").append(surveyPoster.makeTaskURL(responseManager, task));
         LOGGER.info(msg.toString());
         System.out.println(msg.toString());
         runner.join();
@@ -471,9 +467,7 @@ public class Runner {
         repl.join();
     }
 
-    public static org.eclipse.jetty.server.Server runDashboard(
-            Record record)
-    {
+    static org.eclipse.jetty.server.Server runDashboard(Record record) {
         // TODO(etosch): make this more java-like in the future.
         IFn require = Clojure.var("clojure.core", "require");
         require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
