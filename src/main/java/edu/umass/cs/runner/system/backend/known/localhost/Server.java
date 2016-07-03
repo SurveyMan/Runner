@@ -14,28 +14,33 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class Server {
 
-    public static final String RESPONSES = "responses";
+    static final String RESPONSES = "responses";
+    private static final String ASSIGNMENTID = "assignmentId";
+    private static final String SURVEYMAN_JS = "surveyman.main.js";
 
-    public static class IdResponseTuple {
+    static class IdResponseTuple {
         public String id, xml;
-        public IdResponseTuple(String id, String xml) {
+        IdResponseTuple(String id, String xml) {
             this.id = id; this.xml = xml;
         }
-        protected String jsonize() {
+        String jsonize() {
             return String.format("{\"workerid\" : \"%s\", \"answer\" : \"%s\"}", id, AbstractLexer.xmlChars2HTML(xml));
         }
     }
 
-    public static Gensym gensym = new Gensym("a");
     public static volatile int frontPort = 8000;
-    public static boolean serving = false;
-    public final static List<IdResponseTuple> newXmlResponses = new ArrayList<IdResponseTuple>();
-    public final static List<IdResponseTuple> oldXmlResponses = new ArrayList<IdResponseTuple>();
-    public static int requests = 0;
+    static boolean serving = false;
+    private static int requests = 0;
+    private static Gensym gensym = new Gensym("a");
+    private final static List<IdResponseTuple> newXmlResponses = new ArrayList<>();
+    private final static List<IdResponseTuple> oldXmlResponses = new ArrayList<>();
 
     private static WebServer server;
 
@@ -50,15 +55,20 @@ public class Server {
                 String method = httpRequest.getMethod();
                 String httpPath = httpRequest.getPathInfo();
 
-                //Runner.LOGGER.info("HTTP Request: "+method+" "+httpPath);
+                Runner.LOGGER.info("HTTP Request: "+method+" "+httpPath);
 
                 String response = "";
                 if("GET".equals(method)) {
                     if (httpPath.endsWith(RESPONSES))
                         response = getJsonizedNewResponses();
-                    else if (httpPath.endsWith("assignmentId"))
+                    else if (httpPath.endsWith(ASSIGNMENTID))
                         response = gensym.next();
-                    else {
+                    else if (httpPath.endsWith(SURVEYMAN_JS)) {
+                        // since we are serving out of the logs folder
+                        // http://stackoverflow.com/questions/33829573/how-to-get-embedded-jetty-serving-html-files-from-a-jar-not-a-war
+                        response = edu.umass.cs.surveyman.utils.Slurpie.slurp(SURVEYMAN_JS);
+                        Runner.LOGGER.debug("Read response: " + response);
+                    } else {
                         String path = httpPath.replace("/", AbstractLibrary.fileSep).substring(1);
                         try {
                             response = Slurpie.slurp(path);

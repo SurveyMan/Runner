@@ -1,7 +1,6 @@
 package edu.umass.cs.runner.system.backend;
 
 import edu.umass.cs.runner.Record;
-import edu.umass.cs.runner.system.backend.ITask;
 import edu.umass.cs.runner.system.exceptions.RecordNotFoundException;
 import edu.umass.cs.surveyman.analyses.SurveyResponse;
 import edu.umass.cs.surveyman.survey.Survey;
@@ -13,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractResponseManager {
 
-    final public static int maxwaittime = 60;
+    final protected static int maxwaittime = 60;
     private static ConcurrentHashMap<String, Record> manager = new ConcurrentHashMap<String, Record>();
 
     public static void chill(

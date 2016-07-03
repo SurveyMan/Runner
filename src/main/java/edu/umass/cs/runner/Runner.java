@@ -249,10 +249,8 @@ public class Runner {
                 do try {
                     record = AbstractResponseManager.getRecord(survey);
                     //LOGGER.debug("Record identity:\t"+System.identityHashCode(record));
-                    synchronized (record) {
-                        if (record.needsWrite()) {
-                            writeResponses(survey, record);
-                        }
+                    if (record.needsWrite()) {
+                        writeResponses(survey, record);
                     }
                 } catch (IOException | SurveyException e) {
                     e.printStackTrace();
@@ -379,16 +377,19 @@ public class Runner {
                         if (choice == exitChoice) {
                             exit(abstractResponseManager, record);
                             return;
-                        } else if (choice == stopDashboardChoice) {
-                            LOGGER.info("User cancelling dashboard service.");
-                            try {
-                                if (dashboardServer != null)
-                                    dashboardServer.stop();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
                         } else {
-                            printWriter.write(prompt + String.format("%d not a recognized option.", choice) + ANSI_RESET);
+                            if (choice == stopDashboardChoice) {
+                                LOGGER.info("User cancelling dashboard service.");
+                                try {
+                                    if (dashboardServer != null) {
+                                        dashboardServer.stop();
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                printWriter.write(prompt + String.format("%d not a recognized option.", choice) + ANSI_RESET);
+                            }
                         }
                     } catch (NoSuchElementException _) {}
                     printWriter.write(prompt + instructions + ANSI_RESET);
@@ -467,7 +468,7 @@ public class Runner {
         repl.join();
     }
 
-    static org.eclipse.jetty.server.Server runDashboard(Record record) {
+     private static org.eclipse.jetty.server.Server runDashboard(Record record) {
         // TODO(etosch): make this more java-like in the future.
         IFn require = Clojure.var("clojure.core", "require");
         require.invoke(Clojure.read("edu.umass.cs.runner.dashboard.Dashboard"));
