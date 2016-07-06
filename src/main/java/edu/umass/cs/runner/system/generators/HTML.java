@@ -1,8 +1,9 @@
 package edu.umass.cs.runner.system.generators;
 
+import edu.umass.cs.runner.Record;
+import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.system.backend.AbstractLibrary;
 import edu.umass.cs.runner.system.backend.IHTML;
-import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.utils.Slurpie;
 import edu.umass.cs.surveyman.input.AbstractLexer;
 import edu.umass.cs.surveyman.input.AbstractParser;
@@ -15,9 +16,10 @@ import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import edu.umass.cs.runner.Record;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.MalformedURLException;
 
 public class HTML {
@@ -61,8 +63,7 @@ public class HTML {
         bw.close();
     }
 
-    private static String cleanedPreview(
-            Record record)
+    private static String cleanedPreview(Record record)
     {
         String preview = record.library.props.getProperty("splashpage", "");
         Document doc = Jsoup.parse(preview);

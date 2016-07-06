@@ -7,6 +7,7 @@ import edu.umass.cs.surveyman.survey.HTMLDatum;
 import edu.umass.cs.surveyman.survey.Survey;
 import edu.umass.cs.surveyman.survey.SurveyDatum;
 import edu.umass.cs.surveyman.survey.exceptions.SurveyException;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -28,7 +29,7 @@ public class JS {
         return loadPreview;
     }
 
-    public static String getJSString(
+    static String getJSString(
             KnownBackendType knownBackendType,
             Survey survey,
             SurveyDatum preview,
@@ -49,7 +50,7 @@ public class JS {
                     survey.jsonize(),
                     makePreview(preview),
                     Slurpie.slurp(AbstractLibrary.JSSKELETON, true),
-                    breakoffMessage //needs to be url encoded
+                    StringEscapeUtils.escapeHtml(breakoffMessage)
             );
         } catch (IOException ex) {
             LOGGER.fatal(ex);
