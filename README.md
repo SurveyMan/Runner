@@ -14,9 +14,11 @@ backend services.
 1. Clone this repository
 2. On the command line, type `make`. Answer `A` to all questions. 
 
-# Running 
+# Testing the code
 
 To see usage, run `java -jar runner.jar`. To actually run something, you must use the `-cp` argument; there are several executables in this jar.
+
+# Running the local server
 
 
 ### Troubleshooting

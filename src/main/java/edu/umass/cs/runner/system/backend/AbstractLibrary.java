@@ -1,5 +1,6 @@
 package edu.umass.cs.runner.system.backend;
 
+import edu.umass.cs.runner.Record;
 import edu.umass.cs.runner.Runner;
 import edu.umass.cs.runner.utils.Slurpie;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -71,6 +72,14 @@ public abstract class AbstractLibrary implements Serializable {
         props.load(new StringReader(foo));
     }
 
+    public boolean use_oauth(Record record) {
+        return record.backendType.equals(KnownBackendType.LOCALHOST) &&
+                ! getClientId(record).equals("");
+    }
+
+    public String getClientId(Record record) {
+        return record.library.props.getProperty("clientid", "");
+    }
 
     public static void dashboardDump(
             Namespace ns)

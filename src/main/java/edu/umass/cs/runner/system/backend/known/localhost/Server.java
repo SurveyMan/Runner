@@ -14,15 +14,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class Server {
 
-    public static final String RESPONSES = "responses";
+    static final String RESPONSES = "responses";
 
-    public static class IdResponseTuple {
+    static class IdResponseTuple {
         public String id, xml;
-        public IdResponseTuple(String id, String xml) {
+        IdResponseTuple(String id, String xml) {
             this.id = id; this.xml = xml;
         }
         protected String jsonize() {
@@ -30,7 +33,7 @@ public class Server {
         }
     }
 
-    public static Gensym gensym = new Gensym("a");
+    private static Gensym gensym = new Gensym("a");
     public static volatile int frontPort = 8000;
     public static boolean serving = false;
     public final static List<IdResponseTuple> newXmlResponses = new ArrayList<IdResponseTuple>();
@@ -43,7 +46,6 @@ public class Server {
         server = WebServer.start(frontPort, new WebHandler() {
             @Override
             public void handle(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
-
                 requests++;
                 httpResponse.addHeader("Access-Control-Allow-Origin:", "http://surveyman.github.io");
 
@@ -138,7 +140,7 @@ public class Server {
         return new IdResponseTuple(assignmentId, xml.toString());
     }
 
-    public static boolean endSurvey() throws WebServerException {
+    static boolean endSurvey() throws WebServerException {
         endServe();
         server = WebServer.start(frontPort, new WebHandler() {
             @Override

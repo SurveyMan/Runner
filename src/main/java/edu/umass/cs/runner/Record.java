@@ -36,7 +36,7 @@ public class Record implements Serializable {
     public final double expectedCost;
     private final String RECORDDIR = AbstractLibrary.RECORDDIR + AbstractLibrary.fileSep + this.rid;
 
-    public String serializeRecord() throws IOException {
+    String serializeRecord() throws IOException {
         String timestamp = String.valueOf(System.currentTimeMillis());
         String serializedFileName = RECORDDIR + AbstractLibrary.fileSep + timestamp;
         FileOutputStream fileOutputStream = new FileOutputStream(serializedFileName);
@@ -48,7 +48,7 @@ public class Record implements Serializable {
         return serializedFileName;
     }
 
-    public static Record deserializeRecord(String serializedRecordFilename) throws IOException, ClassNotFoundException {
+    static Record deserializeRecord(String serializedRecordFilename) throws IOException, ClassNotFoundException {
         Record record;
         FileInputStream fileInputStream = new FileInputStream(serializedRecordFilename);
         ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
@@ -58,7 +58,7 @@ public class Record implements Serializable {
         return record;
     }
 
-    public static Record deserializeLatestRecord(String recordDirectory) throws IOException, ClassNotFoundException {
+    static Record deserializeLatestRecord(String recordDirectory) throws IOException, ClassNotFoundException {
         File dir = new File(recordDirectory);
         assert dir.isDirectory() : String.format("File %s is not a directory", recordDirectory);
         long maxTimestamp = Long.MIN_VALUE;
@@ -174,7 +174,7 @@ public class Record implements Serializable {
         return this.tasks.toArray(new ITask[tasks.size()]);
     }
 
-    public synchronized List<SurveyResponse> getAllResponses() {
+    synchronized List<SurveyResponse> getAllResponses() {
         List<SurveyResponse> allResponses = new ArrayList<SurveyResponse>();
 
         if (this.validResponses != null) {
@@ -198,7 +198,7 @@ public class Record implements Serializable {
         return String.format("[ %s ]", StringUtils.join(strings, ", "));
     }
 
-    public boolean needsWrite() {
+    boolean needsWrite() {
         for (SurveyResponse SurveyResponse : this.getAllResponses())
             if (!SurveyResponse.isRecorded())
                 return true;
