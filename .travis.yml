@@ -18,3 +18,4 @@ before_install:
   - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
   - git submodule update --init --recursive
   - scripts/setup.sh
+  - npm install -g npm@'>=3.3'
