@@ -20,6 +20,9 @@ clean:
 
 compile: deps
 	mvn compile -DskipTests
+	git submodule init
+	git submodule update
+	cd src/main/resources/surveyman.js && npm install
 
 test: compile
 	mvn test
