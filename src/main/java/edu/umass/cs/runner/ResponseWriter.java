@@ -3,13 +3,19 @@ package edu.umass.cs.runner;
 import edu.umass.cs.runner.system.SurveyResponse;
 import edu.umass.cs.surveyman.analyses.IQuestionResponse;
 import edu.umass.cs.surveyman.analyses.OptTuple;
-import edu.umass.cs.surveyman.input.AbstractParser;
 import edu.umass.cs.surveyman.survey.HTMLDatum;
+import edu.umass.cs.surveyman.survey.InputOutputKeys;
 import edu.umass.cs.surveyman.survey.StringDatum;
 import edu.umass.cs.surveyman.survey.Survey;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.io.RuntimeIOException;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,7 +29,7 @@ public class ResponseWriter {
             , "optionid", "optiontext", "optionpos"};
     public static final String sep = ",";
     public static final String newline = "\r\n";
-    public static final CellProcessor[] processors = new CellProcessor[] {
+    public static final CellProcessor[] defaultProcessors = new CellProcessor[] {
             new NotNull(), // responseid
             new NotNull(), // workerid
             new NotNull(), // surveyid
@@ -34,11 +40,30 @@ public class ResponseWriter {
             new NotNull() // optionpos
     };
 
-    public static String outputHeaders(Survey survey, List<String> backendHeaders) {
-        StringBuilder s = new StringBuilder();
+    public final Survey survey;
+    public final List<String> backendHeaders;
+    public final File outputFile;
+    private boolean writtenHeaders;
+
+    public ResponseWriter(Record record) {
+        this.survey = record.survey;
+        this.backendHeaders = record.library.getBackendHeaders();
+        this.outputFile = new File(record.outputFileName);
+        try {
+            PrintWriter pw = new PrintWriter(new FileWriter(this.outputFile, true));
+            writeHeaders(pw);
+            this.writtenHeaders = true;
+            pw.close();
+        } catch (IOException io) {
+            throw new RuntimeIOException(io);
+        }
+    }
+
+    public List<String> getHeaders() {
+        List<String> s = new ArrayList<>();
 
         // default headers
-        s.append(defaultHeaders[0]);
+        s.add(defaultHeaders[0]);
         for (String header : Arrays.asList(defaultHeaders).subList(1, defaultHeaders.length))
             s.append(String.format("%s%s", sep, header));
 
@@ -54,11 +79,29 @@ public class ResponseWriter {
 
         //correlation
         if (survey.correlationMap != null && !survey.correlationMap.isEmpty())
-            s.append(String.format("%s%s", sep, AbstractParser.CORRELATION));
+            s.append(String.format("%s%s", sep, InputOutputKeys.CORRELATION));
 
         s.append("\r\n");
         Runner.LOGGER.info("headers:" + s.toString());
-        return s.toString();
+        return s;
+    }
+
+    private CellProcessor[] getCellProcessors() {
+        // returns all of the cell processors (including the custom ones and the mturk backend ones
+        return new CellProcessor[]{};
+    }
+
+    public void writeHeaders(PrintWriter pw) throws IOException
+    {
+        List<String> headers = getHeaders();
+        // this isn't using cell processors right now, but should maybe be updated to do so later
+        pw.write(StringUtils.join(headers, ","));
+        pw.flush();
+    }
+
+    public void writeResponse(PrintWriter pw, SurveyResponse sr) throws IOException {
+        // TODO: write response using cell processors.
+        sr.setRecorded(true);
     }
 
     private static String outputQuestionResponse(

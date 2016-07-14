@@ -215,16 +215,11 @@ public class Runner {
                 LOGGER.info("Writing " + sr.getSrid() + "...");
                 try {
                     LOGGER.info(record.outputFileName);
-                    File f = new File(record.outputFileName);
-                    bw = new PrintWriter(new FileWriter(f, true));
-                    if (! f.exists() || f.length()==0)
-                        bw.print(ResponseWriter.outputHeaders(survey, record.library.getBackendHeaders()));
+                    //File f = new File(record.outputFileName);
+                    ResponseWriter rw = new ResponseWriter(record);
                     String txt = ResponseWriter.outputSurveyResponse(survey, sr);
                     LOGGER.info(txt);
-                    bw.print(txt);
-                    bw.flush();
-                    bw.close();
-                    sr.setRecorded(true);
+                    rw.writeResponse(sr);
                 } catch (IOException ex) {
                     LOGGER.info(ex.getMessage());
                     LOGGER.warn(ex);
