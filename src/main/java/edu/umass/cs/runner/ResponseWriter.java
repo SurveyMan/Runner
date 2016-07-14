@@ -7,8 +7,14 @@ import edu.umass.cs.surveyman.input.AbstractParser;
 import edu.umass.cs.surveyman.survey.HTMLDatum;
 import edu.umass.cs.surveyman.survey.StringDatum;
 import edu.umass.cs.surveyman.survey.Survey;
+import org.supercsv.cellprocessor.constraint.NotNull;
+import org.supercsv.cellprocessor.ift.CellProcessor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class ResponseWriter {
 
@@ -17,7 +23,16 @@ public class ResponseWriter {
             , "optionid", "optiontext", "optionpos"};
     public static final String sep = ",";
     public static final String newline = "\r\n";
-
+    public static final CellProcessor[] processors = new CellProcessor[] {
+            new NotNull(), // responseid
+            new NotNull(), // workerid
+            new NotNull(), // surveyid
+            new NotNull(), // questionid
+            new NotNull(), // questiontext
+            new NotNull(), // optionid
+            new NotNull(), // optiontext
+            new NotNull() // optionpos
+    };
 
     public static String outputHeaders(Survey survey, List<String> backendHeaders) {
         StringBuilder s = new StringBuilder();
